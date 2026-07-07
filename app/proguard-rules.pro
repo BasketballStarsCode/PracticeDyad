@@ -1,0 +1,4 @@
+-keep class com.practicedyad.app.data.model.** { *; }
+-keep class com.google.firebase.** { *; }
+-keepattributes Signature
+-keepattributes *Annotation*
