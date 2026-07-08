@@ -4,8 +4,9 @@
 
 import sys
 import os
+import math
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageDraw
 
 if len(sys.argv) < 2:
     print("Verwendung: python set_icon.py <Pfad zum Logo>")
@@ -18,6 +19,26 @@ if not os.path.exists(logo_path):
 
 res_dir = Path(__file__).parent / "app" / "src" / "main" / "res"
 
+TEAL = (0, 200, 224, 255)  # #00C8E0
+
+def make_legacy_icon(img, size):
+    """Logo zentriert auf tealem Kreis — übersteht jeden kreisförmigen Launcher-Mask."""
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+
+    # Teal Kreis als Hintergrund
+    circle = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(circle)
+    draw.ellipse([0, 0, size - 1, size - 1], fill=TEAL)
+    canvas.paste(circle, (0, 0), circle)
+
+    # Logo bei 65% des Kreisdurchmessers — Ecken des Logo-Quadrats liegen knapp
+    # innerhalb des Kreises (65% * sqrt(2)/2 ≈ 0.46 < 0.5 Radius)
+    logo_size = int(size * 0.65)
+    offset = (size - logo_size) // 2
+    logo_scaled = img.resize((logo_size, logo_size), Image.LANCZOS)
+    canvas.paste(logo_scaled, (offset, offset), logo_scaled)
+    return canvas
+
 # Größen für Legacy-Icons
 DENSITIES = {
     "mipmap-mdpi":    48,
@@ -29,34 +50,36 @@ DENSITIES = {
 
 img = Image.open(logo_path).convert("RGBA")
 
-print("Erstelle Legacy-Icons...")
+print("Erstelle Legacy-Icons (Logo auf Teal-Kreis)...")
 for folder, size in DENSITIES.items():
     target_dir = res_dir / folder
     target_dir.mkdir(exist_ok=True)
-    # Alte .webp Dateien löschen
     for old in target_dir.glob("ic_launcher*.webp"):
         old.unlink()
-    resized = img.resize((size, size), Image.LANCZOS)
-    resized.save(target_dir / "ic_launcher.png", "PNG")
-    resized.save(target_dir / "ic_launcher_round.png", "PNG")
-    print(f"  ✓ {folder}: {size}×{size}px")
+    icon = make_legacy_icon(img, size)
+    icon.save(target_dir / "ic_launcher.png", "PNG")
+    icon.save(target_dir / "ic_launcher_round.png", "PNG")
+    print(f"  OK {folder}: {size}x{size}px")
 
 # Adaptives Icon: Vordergrundebene als PNG (432×432 für xxxhdpi)
-# Safe Zone = 66% → Logo auf 66% skalieren und mittig platzieren
+# Safe Zone = Kreis mit Ø 264px (132px Radius ab Mitte).
+# Logo-Quadrat-Ecken müssen innerhalb des Kreises liegen:
+#   Eckenabstand = logo_size/2 * sqrt(2) ≤ 132  →  logo_size ≤ 186px  →  43% von 432
+# Mit Sicherheitspuffer: 38% = 164px (Eckenabstand = 116px < 132px OK)
 print("\nErstelle adaptives Icon-Foreground (432×432 mit Safe-Zone-Padding)...")
 drawable_dir = res_dir / "drawable-xxxhdpi"
 drawable_dir.mkdir(exist_ok=True)
 FULL = 432
-LOGO_SIZE = int(FULL * 0.70)   # 302px — größer, noch innerhalb der Safe Zone
+LOGO_SIZE = int(FULL * 0.38)   # 164px — Ecken bei 116px Abstand, Safe-Zone-Radius 132px
 OFFSET = (FULL - LOGO_SIZE) // 2
 
 canvas = Image.new("RGBA", (FULL, FULL), (0, 0, 0, 0))
 logo_scaled = img.resize((LOGO_SIZE, LOGO_SIZE), Image.LANCZOS)
 canvas.paste(logo_scaled, (OFFSET, OFFSET), logo_scaled)
 canvas.save(drawable_dir / "ic_launcher_fg.png", "PNG")
-print(f"  ✓ drawable-xxxhdpi/ic_launcher_fg.png  (Logo {LOGO_SIZE}px zentriert)")
+print(f"  OK drawable-xxxhdpi/ic_launcher_fg.png  (Logo {LOGO_SIZE}px, Eckenabstand {int(LOGO_SIZE/2*math.sqrt(2))}px < 132px Safe-Zone-Radius)")
 
-# Schreibe Foreground-XML (BitmapDrawable)
+# Foreground-XML (BitmapDrawable)
 foreground_xml = res_dir / "drawable" / "ic_launcher_foreground.xml"
 foreground_xml.write_text(
     '<?xml version="1.0" encoding="utf-8"?>\n'
@@ -66,9 +89,9 @@ foreground_xml.write_text(
     '    android:tileMode="disabled"/>\n',
     encoding="utf-8"
 )
-print("  ✓ drawable/ic_launcher_foreground.xml aktualisiert")
+print("  OK drawable/ic_launcher_foreground.xml aktualisiert")
 
-# Schreibe Background-XML (weiß, da das Bild selbst den Verlauf hat)
+# Background-XML (Teal)
 background_xml = res_dir / "drawable" / "ic_launcher_background.xml"
 background_xml.write_text(
     '<?xml version="1.0" encoding="utf-8"?>\n'
@@ -82,6 +105,13 @@ background_xml.write_text(
     '</vector>\n',
     encoding="utf-8"
 )
-print("  ✓ drawable/ic_launcher_background.xml aktualisiert")
+print("  OK drawable/ic_launcher_background.xml aktualisiert")
+
+# app_logo.png für die Sidebar
+app_logo_dir = res_dir / "drawable"
+app_logo_dir.mkdir(exist_ok=True)
+app_logo = img.resize((144, 144), Image.LANCZOS)
+app_logo.save(app_logo_dir / "app_logo.png", "PNG")
+print("  OK drawable/app_logo.png aktualisiert")
 
 print("\nFertig! App neu bauen um das Icon zu sehen.")

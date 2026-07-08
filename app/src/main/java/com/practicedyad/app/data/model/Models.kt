@@ -85,8 +85,10 @@ data class ExerciseTemplate(
     val isCustom: Boolean = false,
     val coachId: String = "",
     val organizationId: String = "",
-    // "standard" | "reaction_tap" | "circle_overlap" | "color_reaction"
-    val exerciseType: String = "standard"
+    // "standard" | "reaction_tap" | "circle_overlap" | "color_reaction" | "field_tap" | "color_tap" | "audio_tap" | "pair_find"
+    val exerciseType: String = "standard",
+    val param2: Int = 0,
+    val param3: Int = 0
 )
 
 // ─── Training Plan ────────────────────────────────────────────────────────────
@@ -118,7 +120,7 @@ data class WorkoutUnit(
     val allowShareWorkout: Boolean = true,
     val allowShareProgress: Boolean = true,
     val athleteChosenWeekday: Map<String, Int> = emptyMap(),
-    val isCircuit: Boolean = false,
+    val circuit: Boolean = false,
     val circuitRounds: Int = 3,
     val circuitRestBetweenExercises: Int = 30,  // seconds
     val circuitRestBetweenRounds: Int = 60      // seconds

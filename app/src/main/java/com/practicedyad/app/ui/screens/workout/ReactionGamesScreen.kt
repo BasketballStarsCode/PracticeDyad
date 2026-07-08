@@ -1,5 +1,7 @@
 package com.practicedyad.app.ui.screens.workout
 
+import android.media.AudioManager
+import android.media.ToneGenerator
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -16,6 +18,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +31,10 @@ import com.practicedyad.app.ui.theme.TealPrimary
 import com.practicedyad.app.viewmodel.WorkoutViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -59,6 +66,10 @@ fun ReactionGamesScreen(
         "reaction_tap" -> "Schnell Antippen"
         "circle_overlap" -> "Kreise treffen"
         "color_reaction" -> "Reaktion auf Farben"
+        "field_tap" -> "Antippen nach Feldern"
+        "color_tap" -> "Antippen nach Farben"
+        "audio_tap" -> "Antippen mit Signalton"
+        "pair_find" -> "Paare finden"
         else -> "Spiel"
     }
 
@@ -155,6 +166,65 @@ fun ReactionGamesScreen(
                             }
                         }
                     )
+                    "field_tap" -> FieldTapGame(
+                        roundSeconds = roundSeconds,
+                        fieldCount = param2.coerceIn(2, 8),
+                        colorMode = param3 == 1,
+                        currentRound = currentRound,
+                        totalRounds = rounds,
+                        onRoundDone = { avgMs, correct, wrong ->
+                            if (avgMs > 0) { totalReactionSumMs += avgMs; totalReactionCount++ }
+                            totalCorrect += correct; totalWrong += wrong
+                            if (currentRound >= rounds) {
+                                val overallAvg = if (totalReactionCount > 0) totalReactionSumMs / totalReactionCount else 0L
+                                workoutVm.saveGameResult(exerciseId = exerciseId, exerciseName = title, avgReactionMs = overallAvg, correctAttempts = totalCorrect, wrongAttempts = totalWrong)
+                                totalDone = true
+                            } else { currentRound++ }
+                        }
+                    )
+                    "color_tap" -> ColorTapGame(
+                        roundSeconds = roundSeconds,
+                        colorCount = param2.coerceIn(2, 7),
+                        targetColorIndex = param3.coerceIn(0, (param2 - 1).coerceAtLeast(0)),
+                        currentRound = currentRound,
+                        totalRounds = rounds,
+                        onRoundDone = { avgMs, correct, wrong ->
+                            if (avgMs > 0) { totalReactionSumMs += avgMs; totalReactionCount++ }
+                            totalCorrect += correct; totalWrong += wrong
+                            if (currentRound >= rounds) {
+                                val overallAvg = if (totalReactionCount > 0) totalReactionSumMs / totalReactionCount else 0L
+                                workoutVm.saveGameResult(exerciseId = exerciseId, exerciseName = title, avgReactionMs = overallAvg, correctAttempts = totalCorrect, wrongAttempts = totalWrong)
+                                totalDone = true
+                            } else { currentRound++ }
+                        }
+                    )
+                    "audio_tap" -> AudioTapGame(
+                        roundSeconds = roundSeconds,
+                        currentRound = currentRound,
+                        totalRounds = rounds,
+                        onRoundDone = { avgMs ->
+                            if (avgMs > 0) { totalReactionSumMs += avgMs; totalReactionCount++ }
+                            if (currentRound >= rounds) {
+                                val overallAvg = if (totalReactionCount > 0) totalReactionSumMs / totalReactionCount else 0L
+                                workoutVm.saveGameResult(exerciseId = exerciseId, exerciseName = title, avgReactionMs = overallAvg)
+                                totalDone = true
+                            } else { currentRound++ }
+                        }
+                    )
+                    "pair_find" -> PairFindGame(
+                        roundSeconds = roundSeconds,
+                        objectCount = param2.coerceIn(3, 9),
+                        displayMs = param3.coerceAtLeast(200),
+                        currentRound = currentRound,
+                        totalRounds = rounds,
+                        onRoundDone = { correct, wrong ->
+                            totalCorrect += correct; totalWrong += wrong
+                            if (currentRound >= rounds) {
+                                workoutVm.saveGameResult(exerciseId = exerciseId, exerciseName = title, correctAttempts = totalCorrect, wrongAttempts = totalWrong)
+                                totalDone = true
+                            } else { currentRound++ }
+                        }
+                    )
                     else -> {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text("Unbekannter Spieltyp")
@@ -188,16 +258,31 @@ private fun GameSummary(
         Text("$rounds Runden", color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(32.dp))
         when (exerciseType) {
-            "reaction_tap" -> {
+            "reaction_tap", "audio_tap" -> {
                 val avg = if (totalReactionCount > 0) totalReactionSumMs / totalReactionCount else 0L
                 StatCard("Ø Reaktionszeit", "${avg} ms")
                 Spacer(Modifier.height(8.dp))
                 StatCard("Gemessene Reaktionen", "$totalReactionCount")
             }
-            "circle_overlap" -> {
+            "circle_overlap", "pair_find" -> {
                 StatCard("Richtige Versuche", "$totalCorrect")
                 Spacer(Modifier.height(8.dp))
                 StatCard("Falsche Versuche", "$totalWrong")
+                if (totalCorrect + totalWrong > 0) {
+                    Spacer(Modifier.height(8.dp))
+                    val pct = (totalCorrect * 100) / (totalCorrect + totalWrong)
+                    StatCard("Genauigkeit", "$pct %")
+                }
+            }
+            "field_tap", "color_tap" -> {
+                val avg = if (totalReactionCount > 0) totalReactionSumMs / totalReactionCount else 0L
+                if (avg > 0) {
+                    StatCard("Ø Reaktionszeit", "${avg} ms")
+                    Spacer(Modifier.height(8.dp))
+                }
+                StatCard("Richtig", "$totalCorrect")
+                Spacer(Modifier.height(8.dp))
+                StatCard("Falsch", "$totalWrong")
                 if (totalCorrect + totalWrong > 0) {
                     Spacer(Modifier.height(8.dp))
                     val pct = (totalCorrect * 100) / (totalCorrect + totalWrong)
@@ -335,8 +420,8 @@ private fun ReactionTapGame(
                 if (phase != GamePhase.PLAYING) break
                 isFlashing = true
                 flashStartTime = System.currentTimeMillis()
-                delay(400)
-                if (isFlashing) isFlashing = false
+                delay(1000)
+                if (isFlashing) isFlashing = false  // only if athlete hasn't tapped yet
             }
         }
     }
@@ -561,20 +646,6 @@ private fun CircleOverlapGame(
                 Text("Runde $currentRound / $totalRounds", fontSize = 13.sp, color = Color.Gray)
                 Text("${(timeLeftMs / 1000)}s", fontSize = 28.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
-                val isReady = overlappingCount >= overlapRequired
-                Surface(
-                    color = if (isReady) Color(0xFF4CAF50).copy(alpha = 0.9f) else Color.Gray.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        if (isReady) "JETZT TIPPEN! ($overlappingCount/$overlapRequired)" else "Warten... ($overlappingCount/$overlapRequired)",
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp
-                    )
-                }
-                Spacer(Modifier.height(4.dp))
                 Text("✓ $correctCount  ✗ $wrongCount", fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
         }
@@ -696,6 +767,528 @@ private fun ColorReactionGame(
                     }
                 }
             }
+        }
+    }
+}
+
+// ─── Game 4: Schnell Antippen nach Feldern ────────────────────────────────────
+
+private val fieldGameColors = listOf(
+    Color(0xFFF44336), Color(0xFF2196F3), Color(0xFF4CAF50),
+    Color(0xFFFFEB3B), Color(0xFF9C27B0), Color(0xFFFF9800),
+    Color(0xFF00BCD4), Color(0xFFE91E63)
+)
+private val fieldGameColorNames = listOf("Rot", "Blau", "Grün", "Gelb", "Lila", "Orange", "Türkis", "Pink")
+
+@Composable
+private fun FieldTapGame(
+    roundSeconds: Int,
+    fieldCount: Int,
+    colorMode: Boolean,
+    currentRound: Int,
+    totalRounds: Int,
+    onRoundDone: (avgReactionMs: Long, correct: Int, wrong: Int) -> Unit
+) {
+    var phase by remember(currentRound) { mutableStateOf(GamePhase.COUNTDOWN) }
+    var showInstruction by remember(currentRound) { mutableStateOf(colorMode) }
+    var activeField by remember(currentRound) { mutableStateOf(-1) }
+    var flashStartTime by remember(currentRound) { mutableStateOf(0L) }
+    var timeLeftMs by remember(currentRound) { mutableStateOf(roundSeconds * 1000L) }
+    val reactionTimes = remember(currentRound) { mutableStateListOf<Long>() }
+    var correctCount by remember(currentRound) { mutableStateOf(0) }
+    var wrongCount by remember(currentRound) { mutableStateOf(0) }
+
+    if (showInstruction) {
+        Box(Modifier.fillMaxSize().background(Color(0xFF1A1A2E)), contentAlignment = Alignment.Center) {
+            Column(
+                Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("Farbe → Feld", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text("Tippe das Feld passend zur Farbe an.", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(8.dp))
+                (0 until fieldCount).forEach { i ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(40.dp, 28.dp).background(fieldGameColors[i], RoundedCornerShape(6.dp)))
+                        Text("${fieldGameColorNames[i]} → Feld ${i + 1}", color = Color.White, fontSize = 16.sp)
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+                Button(
+                    onClick = { showInstruction = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("Verstanden", fontWeight = FontWeight.Bold) }
+            }
+        }
+        return
+    }
+
+    LaunchedEffect(currentRound, phase) {
+        if (phase != GamePhase.PLAYING) return@LaunchedEffect
+        launch {
+            while (timeLeftMs > 0 && phase == GamePhase.PLAYING) { delay(100); timeLeftMs -= 100 }
+            if (phase == GamePhase.PLAYING) { activeField = -1; phase = GamePhase.RESULT }
+        }
+        launch {
+            while (phase == GamePhase.PLAYING) {
+                delay(Random.nextLong(600, 2500))
+                if (phase != GamePhase.PLAYING) break
+                val next = Random.nextInt(fieldCount)
+                activeField = next
+                flashStartTime = System.currentTimeMillis()
+                delay(1500)
+                if (activeField == next) activeField = -1
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0D0D0D))
+            .pointerInput(currentRound, phase) {
+                detectTapGestures { offset ->
+                    if (phase != GamePhase.PLAYING || activeField < 0) return@detectTapGestures
+                    val tapped = if (fieldCount % 2 == 0) {
+                        val (cols, rows) = fieldGridDimensions(fieldCount)
+                        val col = (offset.x / (size.width.toFloat() / cols)).toInt().coerceIn(0, cols - 1)
+                        val row = (offset.y / (size.height.toFloat() / rows)).toInt().coerceIn(0, rows - 1)
+                        row * cols + col
+                    } else {
+                        val cx = size.width / 2f
+                        val cy = size.height / 2f
+                        val angleDeg = Math.toDegrees(atan2((offset.y - cy).toDouble(), (offset.x - cx).toDouble())).toFloat()
+                        val adjusted = ((angleDeg + 90f) + 360f) % 360f
+                        (adjusted / (360f / fieldCount)).toInt() % fieldCount
+                    }
+                    val reactionMs = System.currentTimeMillis() - flashStartTime
+                    if (tapped == activeField) { reactionTimes.add(reactionMs); correctCount++ }
+                    else { wrongCount++ }
+                    activeField = -1
+                }
+            }
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            if (fieldCount % 2 == 0) {
+                val (cols, rows) = fieldGridDimensions(fieldCount)
+                val cellW = size.width / cols
+                val cellH = size.height / rows
+                for (row in 0 until rows) {
+                    for (col in 0 until cols) {
+                        val idx = row * cols + col
+                        val isActive = activeField == idx && !colorMode
+                        drawRect(
+                            color = if (isActive) Color.White else Color(0xFF1A1A1A),
+                            topLeft = androidx.compose.ui.geometry.Offset(col * cellW, row * cellH),
+                            size = androidx.compose.ui.geometry.Size(cellW, cellH)
+                        )
+                        if (colorMode) {
+                            val dotR = min(cellW, cellH) * 0.12f
+                            drawCircle(fieldGameColors[idx], radius = dotR,
+                                center = androidx.compose.ui.geometry.Offset(col * cellW + cellW / 2, row * cellH + cellH / 2))
+                        }
+                        drawRect(Color.White.copy(alpha = 0.1f),
+                            topLeft = androidx.compose.ui.geometry.Offset(col * cellW, row * cellH),
+                            size = androidx.compose.ui.geometry.Size(cellW, cellH),
+                            style = Stroke(1.5f))
+                    }
+                }
+            } else {
+                val sweepAngle = 360f / fieldCount
+                val cx = size.width / 2f
+                val cy = size.height / 2f
+                val maxR = sqrt(size.width * size.width + size.height * size.height)
+                for (i in 0 until fieldCount) {
+                    val startDeg = i * sweepAngle - 90f
+                    val endDeg = startDeg + sweepAngle
+                    val isActive = activeField == i && !colorMode
+                    val path = androidx.compose.ui.graphics.Path()
+                    path.moveTo(cx, cy)
+                    for (step in 0..32) {
+                        val deg = startDeg + (endDeg - startDeg) * step / 32f
+                        val rad = Math.toRadians(deg.toDouble())
+                        path.lineTo((cx + maxR * cos(rad)).toFloat(), (cy + maxR * sin(rad)).toFloat())
+                    }
+                    path.close()
+                    drawPath(path, if (isActive) Color.White else Color(0xFF1A1A1A))
+                    // Divider line
+                    val startRad = Math.toRadians(startDeg.toDouble())
+                    drawLine(Color.White.copy(alpha = 0.12f),
+                        start = androidx.compose.ui.geometry.Offset(cx, cy),
+                        end = androidx.compose.ui.geometry.Offset((cx + maxR * cos(startRad)).toFloat(), (cy + maxR * sin(startRad)).toFloat()),
+                        strokeWidth = 2f)
+                    // Color indicator dot per sector
+                    if (colorMode) {
+                        val midRad = Math.toRadians((startDeg + sweepAngle / 2f).toDouble())
+                        val dotDist = maxR * 0.28f
+                        drawCircle(fieldGameColors[i], radius = 22f,
+                            center = androidx.compose.ui.geometry.Offset(
+                                (cx + dotDist * cos(midRad)).toFloat(),
+                                (cy + dotDist * sin(midRad)).toFloat()))
+                    }
+                }
+            }
+        }
+
+        // Color signal in center (color mode only)
+        if (colorMode && activeField >= 0) {
+            Box(
+                Modifier.align(Alignment.Center).size(100.dp)
+                    .background(fieldGameColors[activeField], RoundedCornerShape(50.dp))
+            )
+        }
+
+        if (phase == GamePhase.PLAYING) {
+            Text(
+                "Runde $currentRound/$totalRounds  ·  ${timeLeftMs / 1000}s  ·  +$correctCount -$wrongCount",
+                color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp)
+            )
+        }
+
+        if (phase == GamePhase.COUNTDOWN) CountdownOverlay(onDone = { phase = GamePhase.PLAYING })
+
+        if (phase == GamePhase.RESULT) {
+            val avgMs = if (reactionTimes.isNotEmpty()) reactionTimes.average().toLong() else 0L
+            val total = correctCount + wrongCount
+            RoundResultOverlay(
+                currentRound = currentRound, totalRounds = totalRounds,
+                resultLines = buildList {
+                    if (reactionTimes.isNotEmpty()) add("Ø Reaktionszeit" to "${avgMs} ms")
+                    add("Richtig" to "$correctCount")
+                    add("Falsch" to "$wrongCount")
+                    if (total > 0) add("Genauigkeit" to "${(correctCount * 100) / total} %")
+                },
+                onNext = { onRoundDone(avgMs, correctCount, wrongCount) }
+            )
+        }
+    }
+}
+
+private fun fieldGridDimensions(fieldCount: Int): Pair<Int, Int> = when (fieldCount) {
+    2 -> 2 to 1
+    4 -> 2 to 2
+    6 -> 3 to 2
+    8 -> 4 to 2
+    else -> fieldCount to 1
+}
+
+// ─── Game 5: Schnell Antippen nach Farben ─────────────────────────────────────
+
+@Composable
+private fun ColorTapGame(
+    roundSeconds: Int,
+    colorCount: Int,
+    targetColorIndex: Int,
+    currentRound: Int,
+    totalRounds: Int,
+    onRoundDone: (avgReactionMs: Long, correct: Int, wrong: Int) -> Unit
+) {
+    val activeColors = remember(colorCount) { gameColors.take(colorCount) }
+    val targetColor = activeColors[targetColorIndex]
+
+    var phase by remember(currentRound) { mutableStateOf(GamePhase.COUNTDOWN) }
+    var currentColorIdx by remember(currentRound) { mutableStateOf(-1) }
+    var flashStartTime by remember(currentRound) { mutableStateOf(0L) }
+    var timeLeftMs by remember(currentRound) { mutableStateOf(roundSeconds * 1000L) }
+    val reactionTimes = remember(currentRound) { mutableStateListOf<Long>() }
+    var correctCount by remember(currentRound) { mutableStateOf(0) }
+    var wrongCount by remember(currentRound) { mutableStateOf(0) }
+
+    LaunchedEffect(currentRound, phase) {
+        if (phase != GamePhase.PLAYING) return@LaunchedEffect
+        launch {
+            while (timeLeftMs > 0 && phase == GamePhase.PLAYING) { delay(100); timeLeftMs -= 100 }
+            if (phase == GamePhase.PLAYING) { currentColorIdx = -1; phase = GamePhase.RESULT }
+        }
+        launch {
+            while (phase == GamePhase.PLAYING) {
+                currentColorIdx = -1
+                delay(Random.nextLong(500, 2000))
+                if (phase != GamePhase.PLAYING) break
+                val next = Random.nextInt(colorCount)
+                currentColorIdx = next
+                flashStartTime = System.currentTimeMillis()
+                delay(800)
+                if (currentColorIdx == next) {
+                    if (next == targetColorIndex) wrongCount++ // missed target
+                    currentColorIdx = -1
+                }
+            }
+        }
+    }
+
+    val bgColor = if (currentColorIdx >= 0) activeColors[currentColorIdx].first else Color(0xFF0D0D0D)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgColor)
+            .pointerInput(currentRound, phase) {
+                detectTapGestures {
+                    if (phase != GamePhase.PLAYING) return@detectTapGestures
+                    if (currentColorIdx == targetColorIndex) {
+                        reactionTimes.add(System.currentTimeMillis() - flashStartTime)
+                        correctCount++
+                        currentColorIdx = -1
+                    } else {
+                        wrongCount++
+                    }
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        if (phase == GamePhase.PLAYING) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (currentColorIdx >= 0) {
+                    Text(activeColors[currentColorIdx].second, fontSize = 52.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                } else {
+                    Text("Antippen bei:", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
+                    Spacer(Modifier.height(8.dp))
+                    Box(Modifier.size(60.dp).background(targetColor.first, RoundedCornerShape(30.dp)))
+                    Spacer(Modifier.height(4.dp))
+                    Text(targetColor.second, color = Color.White.copy(alpha = 0.8f), fontSize = 16.sp)
+                }
+                Spacer(Modifier.height(20.dp))
+                Text("Runde $currentRound/$totalRounds  ·  ${timeLeftMs / 1000}s  ·  +$correctCount -$wrongCount",
+                    fontSize = 12.sp, color = Color.White.copy(alpha = 0.5f))
+            }
+        }
+
+        if (phase == GamePhase.COUNTDOWN) CountdownOverlay(onDone = { phase = GamePhase.PLAYING })
+
+        if (phase == GamePhase.RESULT) {
+            val avgMs = if (reactionTimes.isNotEmpty()) reactionTimes.average().toLong() else 0L
+            val total = correctCount + wrongCount
+            RoundResultOverlay(
+                currentRound = currentRound, totalRounds = totalRounds,
+                resultLines = buildList {
+                    if (reactionTimes.isNotEmpty()) add("Ø Reaktionszeit" to "${avgMs} ms")
+                    add("Richtig" to "$correctCount")
+                    add("Verpasst/Falsch" to "$wrongCount")
+                    if (total > 0) add("Genauigkeit" to "${(correctCount * 100) / total} %")
+                },
+                onNext = { onRoundDone(avgMs, correctCount, wrongCount) }
+            )
+        }
+    }
+}
+
+// ─── Game 6: Schnell Antippen mit Signalton ───────────────────────────────────
+
+@Composable
+private fun AudioTapGame(
+    roundSeconds: Int,
+    currentRound: Int,
+    totalRounds: Int,
+    onRoundDone: (avgReactionMs: Long) -> Unit
+) {
+    var phase by remember(currentRound) { mutableStateOf(GamePhase.COUNTDOWN) }
+    var isSignalActive by remember(currentRound) { mutableStateOf(false) }
+    var signalStartTime by remember(currentRound) { mutableStateOf(0L) }
+    var timeLeftMs by remember(currentRound) { mutableStateOf(roundSeconds * 1000L) }
+    val reactionTimes = remember(currentRound) { mutableStateListOf<Long>() }
+
+    val toneGen = remember { ToneGenerator(AudioManager.STREAM_MUSIC, 100) }
+    DisposableEffect(Unit) { onDispose { toneGen.release() } }
+
+    LaunchedEffect(currentRound, phase) {
+        if (phase != GamePhase.PLAYING) return@LaunchedEffect
+        launch {
+            while (timeLeftMs > 0 && phase == GamePhase.PLAYING) { delay(100); timeLeftMs -= 100 }
+            if (phase == GamePhase.PLAYING) { isSignalActive = false; phase = GamePhase.RESULT }
+        }
+        launch {
+            while (phase == GamePhase.PLAYING) {
+                delay(Random.nextLong(800, 3000))
+                if (phase != GamePhase.PLAYING) break
+                toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 300)
+                isSignalActive = true
+                signalStartTime = System.currentTimeMillis()
+                delay(1500)
+                if (isSignalActive) isSignalActive = false
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0D0D0D))
+            .pointerInput(currentRound, phase) {
+                detectTapGestures {
+                    if (phase == GamePhase.PLAYING && isSignalActive) {
+                        reactionTimes.add(System.currentTimeMillis() - signalStartTime)
+                        isSignalActive = false
+                    }
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        if (phase == GamePhase.PLAYING) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(Modifier.height(32.dp))
+                Text("Runde $currentRound/$totalRounds  ·  ${timeLeftMs / 1000}s",
+                    color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp)
+                if (reactionTimes.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("Letzte: ${reactionTimes.last()} ms", color = Color.White.copy(alpha = 0.4f), fontSize = 14.sp)
+                }
+            }
+        }
+
+        if (phase == GamePhase.COUNTDOWN) CountdownOverlay(onDone = { phase = GamePhase.PLAYING })
+
+        if (phase == GamePhase.RESULT) {
+            val avgMs = if (reactionTimes.isNotEmpty()) reactionTimes.average().toLong() else 0L
+            RoundResultOverlay(
+                currentRound = currentRound, totalRounds = totalRounds,
+                resultLines = buildList {
+                    if (reactionTimes.isNotEmpty()) {
+                        add("Ø Reaktionszeit" to "${avgMs} ms")
+                        add("Schnellste" to "${reactionTimes.min()} ms")
+                        add("Reaktionen" to "${reactionTimes.size}")
+                    } else {
+                        add("Reaktionen" to "keine gemessen")
+                    }
+                },
+                onNext = { onRoundDone(avgMs) }
+            )
+        }
+    }
+}
+
+// ─── Game 7: Paare finden ─────────────────────────────────────────────────────
+
+private val pairFindObjects = listOf(
+    "🌱", "🌿", "🍀", "🌸", "🌺", "🌻", "🌼", "🌹", "🍁", "🍃", "🌴", "🌵",
+    "🚗", "🚕", "🚙", "🚌", "🚑", "🚒", "🚓", "🛵", "🚂", "🚲", "🚀", "⛵",
+    "🐶", "🐱", "🐭", "🐰", "🦊", "🐻", "🐼", "🐯", "🦁", "🐮", "🐸", "🐙",
+    "🍎", "🍊", "🍋", "🍇", "🍓", "🍉", "🍌", "🍑", "🥝", "🍒", "🥕", "🌽"
+)
+
+@Composable
+private fun PairFindGame(
+    roundSeconds: Int,
+    objectCount: Int,
+    displayMs: Int,
+    currentRound: Int,
+    totalRounds: Int,
+    onRoundDone: (correct: Int, wrong: Int) -> Unit
+) {
+    val displayMs = displayMs.toLong().coerceIn(200L, 10000L)
+
+    var phase by remember(currentRound) { mutableStateOf(GamePhase.COUNTDOWN) }
+    var currentObjects by remember(currentRound) { mutableStateOf<List<String>>(emptyList()) }
+    var hasDuplicate by remember(currentRound) { mutableStateOf(false) }
+    var setStartTime by remember(currentRound) { mutableStateOf(0L) }
+    var tappedThisSet by remember(currentRound) { mutableStateOf(false) }
+    var showingSet by remember(currentRound) { mutableStateOf(false) }
+    var timeLeftMs by remember(currentRound) { mutableStateOf(roundSeconds * 1000L) }
+    var correctCount by remember(currentRound) { mutableStateOf(0) }
+    var wrongCount by remember(currentRound) { mutableStateOf(0) }
+    val reactionTimes = remember(currentRound) { mutableStateListOf<Long>() }
+
+    fun generateSet(): Pair<List<String>, Boolean> {
+        val shuffled = pairFindObjects.shuffled()
+        return if (Random.nextBoolean()) {
+            val base = shuffled.take(objectCount - 1)
+            val result = (base + base[Random.nextInt(base.size)]).shuffled()
+            result to true
+        } else {
+            shuffled.take(objectCount) to false
+        }
+    }
+
+    LaunchedEffect(currentRound, phase) {
+        if (phase != GamePhase.PLAYING) return@LaunchedEffect
+        val gameStart = System.currentTimeMillis()
+        launch {
+            while (phase == GamePhase.PLAYING) {
+                delay(100)
+                timeLeftMs = ((roundSeconds * 1000L) - (System.currentTimeMillis() - gameStart)).coerceAtLeast(0)
+                if (timeLeftMs <= 0L) { showingSet = false; currentObjects = emptyList(); phase = GamePhase.RESULT }
+            }
+        }
+        launch {
+            while (phase == GamePhase.PLAYING) {
+                val (objs, dup) = generateSet()
+                currentObjects = objs
+                hasDuplicate = dup
+                setStartTime = System.currentTimeMillis()
+                tappedThisSet = false
+                showingSet = true
+                delay(displayMs)
+                if (dup && !tappedThisSet) wrongCount++
+                showingSet = false
+                currentObjects = emptyList()
+                delay(600)
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0D0D0D))
+            .pointerInput(currentRound, phase) {
+                detectTapGestures {
+                    if (phase != GamePhase.PLAYING || !showingSet || tappedThisSet) return@detectTapGestures
+                    tappedThisSet = true
+                    if (hasDuplicate) {
+                        reactionTimes.add(System.currentTimeMillis() - setStartTime)
+                        correctCount++
+                    } else {
+                        wrongCount++
+                    }
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        if (phase == GamePhase.PLAYING) {
+            val cols = if (objectCount <= 4) 2 else 3
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (showingSet && currentObjects.isNotEmpty()) {
+                    currentObjects.chunked(cols).forEach { row ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            row.forEach { obj -> Text(obj, fontSize = 52.sp) }
+                        }
+                    }
+                } else {
+                    Text("Gleiche Bilder → Tippen!", color = Color.White.copy(alpha = 0.5f), fontSize = 16.sp, textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(4.dp))
+                    Text("${timeLeftMs / 1000}s  ·  +$correctCount -$wrongCount",
+                        color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)
+                }
+            }
+        }
+
+        if (phase == GamePhase.PLAYING && showingSet) {
+            Text(
+                "${timeLeftMs / 1000}s  ·  +$correctCount -$wrongCount",
+                color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp)
+            )
+        }
+
+        if (phase == GamePhase.COUNTDOWN) CountdownOverlay(onDone = { phase = GamePhase.PLAYING })
+
+        if (phase == GamePhase.RESULT) {
+            val avgMs = if (reactionTimes.isNotEmpty()) reactionTimes.average().toLong() else 0L
+            val total = correctCount + wrongCount
+            RoundResultOverlay(
+                currentRound = currentRound, totalRounds = totalRounds,
+                resultLines = buildList {
+                    if (reactionTimes.isNotEmpty()) add("Ø Erkennungszeit" to "${avgMs} ms")
+                    add("Richtig erkannt" to "$correctCount")
+                    add("Fehler" to "$wrongCount")
+                    if (total > 0) add("Genauigkeit" to "${(correctCount * 100) / total} %")
+                },
+                onNext = { onRoundDone(correctCount, wrongCount) }
+            )
         }
     }
 }

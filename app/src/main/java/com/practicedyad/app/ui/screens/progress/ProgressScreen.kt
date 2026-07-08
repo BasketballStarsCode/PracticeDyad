@@ -26,6 +26,7 @@ import com.practicedyad.app.ui.theme.chartColors
 import com.practicedyad.app.viewmodel.ProgressViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 @Composable
 fun ProgressScreen(
@@ -141,6 +142,17 @@ fun ProgressScreen(
                 }
             }
 
+            // Reaction game results
+            val reactionEntries = entries.filter { it.avgReactionMs > 0 || it.correctAttempts + it.wrongAttempts > 0 }
+            if (reactionEntries.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                PDSectionHeader(text = "Reaktionsspiele")
+                ReactionProgressSection(
+                    entries = reactionEntries,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+
             Spacer(Modifier.height(32.dp))
         }
     }
@@ -220,5 +232,149 @@ fun ProgressChart(
             Text(fmt.format(allDates.last()), style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+    }
+}
+
+@Composable
+fun ReactionProgressSection(
+    entries: List<ProgressEntry>,
+    modifier: Modifier = Modifier
+) {
+    val fmt = SimpleDateFormat("dd.MM", Locale.GERMAN)
+    // Group by exercise name
+    val byExercise = entries.groupBy { it.exerciseName }
+
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        byExercise.entries.forEachIndexed { idx, (name, exEntries) ->
+            val sorted = exEntries.sortedBy { it.date.seconds }
+            val hasReactionTime = sorted.any { it.avgReactionMs > 0 }
+            val hasAccuracy = sorted.any { it.correctAttempts + it.wrongAttempts > 0 }
+            val color = chartColors[idx % chartColors.size]
+
+            Card(shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(name, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall)
+                    Spacer(Modifier.height(8.dp))
+
+                    // Latest values summary
+                    val latest = sorted.last()
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        if (hasReactionTime && latest.avgReactionMs > 0) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    "${latest.avgReactionMs} ms",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TealPrimary
+                                )
+                                Text("Ø Reaktionszeit", style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        if (hasAccuracy && latest.correctAttempts + latest.wrongAttempts > 0) {
+                            val total = latest.correctAttempts + latest.wrongAttempts
+                            val rate = (latest.correctAttempts * 100f / total).roundToInt()
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    "$rate %",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TealPrimary
+                                )
+                                Text("Erfolgsquote", style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    "${latest.correctAttempts}/${total}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text("Richtig/Gesamt", style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+
+                    // Mini-chart if multiple data points
+                    if (sorted.size >= 2) {
+                        Spacer(Modifier.height(12.dp))
+
+                        if (hasReactionTime) {
+                            val values = sorted.map { it.avgReactionMs.toFloat() }
+                            ReactionMiniChart(
+                                values = values,
+                                dates = sorted.map { fmt.format(it.date.toDate()) },
+                                color = color,
+                                label = "Reaktionszeit (ms)",
+                                invertY = true  // lower = better
+                            )
+                        }
+                        if (hasAccuracy) {
+                            val values = sorted.map { e ->
+                                val t = e.correctAttempts + e.wrongAttempts
+                                if (t == 0) 0f else e.correctAttempts * 100f / t
+                            }
+                            ReactionMiniChart(
+                                values = values,
+                                dates = sorted.map { fmt.format(it.date.toDate()) },
+                                color = color,
+                                label = "Erfolgsquote (%)",
+                                invertY = false
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReactionMiniChart(
+    values: List<Float>,
+    dates: List<String>,
+    color: Color,
+    label: String,
+    invertY: Boolean
+) {
+    Text(label, style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Spacer(Modifier.height(4.dp))
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+            .padding(horizontal = 8.dp, vertical = 6.dp)
+    ) {
+        val min = values.min()
+        val max = values.max()
+        val range = (max - min).coerceAtLeast(1f)
+        val w = size.width
+        val h = size.height
+
+        val points = values.mapIndexed { i, v ->
+            val x = if (values.size == 1) w / 2f else w * i / (values.size - 1).toFloat()
+            val norm = (v - min) / range
+            val y = if (invertY) h * norm else h * (1f - norm)
+            Offset(x, y)
+        }
+
+        if (points.size >= 2) {
+            val path = Path()
+            path.moveTo(points.first().x, points.first().y)
+            points.drop(1).forEach { path.lineTo(it.x, it.y) }
+            drawPath(path, color, style = Stroke(width = 2.5f))
+        }
+        points.forEach { drawCircle(color, radius = 4f, center = it) }
+    }
+
+    // First/last date labels
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(dates.first(), style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(dates.last(), style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

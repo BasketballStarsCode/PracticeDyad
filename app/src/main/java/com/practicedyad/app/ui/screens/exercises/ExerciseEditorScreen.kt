@@ -1,6 +1,8 @@
 package com.practicedyad.app.ui.screens.exercises
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.graphics.Matrix
+import android.graphics.Paint
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,16 +22,23 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
 import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.practicedyad.app.data.model.ExerciseTemplate
 import com.practicedyad.app.ui.components.*
 import com.practicedyad.app.ui.theme.*
+import com.practicedyad.app.viewmodel.AuthViewModel
 import com.practicedyad.app.viewmodel.ExerciseViewModel
+import kotlinx.coroutines.launch
+import java.io.File
 import java.util.UUID
 import kotlin.math.*
 
@@ -90,9 +99,13 @@ val figureDrawColors = listOf(
 fun ExerciseEditorScreen(
     navController: NavController,
     templateId: String,
-    vm: ExerciseViewModel = hiltViewModel()
+    vm: ExerciseViewModel = hiltViewModel(),
+    authVm: AuthViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val currentUser by authVm.currentUser.collectAsStateWithLifecycle()
+
     var nameDE by remember { mutableStateOf("") }
     var nameEN by remember { mutableStateOf("") }
     var descDE by remember { mutableStateOf("") }
@@ -106,7 +119,6 @@ fun ExerciseEditorScreen(
 
     // Stick figure state
     var figure by remember { mutableStateOf(StickFigure()) }
-    var draggingJoint by remember { mutableStateOf<String?>(null) }
 
     // Drawing state
     val paths = remember { mutableStateListOf<DrawingPath>() }
@@ -119,6 +131,21 @@ fun ExerciseEditorScreen(
     val existingPhotoUrls = remember { mutableStateListOf<String>() }
     val uploadedImageUris = remember { mutableStateListOf<Uri>() }
     val uploadedVideoUris = remember { mutableStateListOf<Uri>() }
+
+    // Image annotation state
+    var annotatingIndex by remember { mutableIntStateOf(-1) } // -1 = not annotating; >=existingPhotoUrls.size = local URI
+    val annotationPaths = remember { mutableStateListOf<DrawingPath>() }
+    val annotationShapes = remember { mutableStateListOf<DrawingShape>() }
+    var annotationCurrentPath by remember { mutableStateOf<List<Offset>>(emptyList()) }
+    var annotationShapeStart by remember { mutableStateOf<Offset?>(null) }
+    var annotationShapeEnd by remember { mutableStateOf<Offset?>(null) }
+    var annotationTool by remember { mutableStateOf(DrawingTool.NONE) }
+    var annotationColor by remember { mutableStateOf(Color.Red) }
+    var annotationStroke by remember { mutableStateOf(4f) }
+
+    // Org save option
+    val hasOrg = currentUser?.organizationId?.isNotEmpty() == true
+    var saveToOrg by remember { mutableStateOf(false) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
@@ -153,6 +180,82 @@ fun ExerciseEditorScreen(
         }
     }
 
+    // If annotating, show full annotation UI instead of main editor
+    if (annotatingIndex >= 0) {
+        val isExisting = annotatingIndex < existingPhotoUrls.size
+        val imageSource: Any = if (isExisting) existingPhotoUrls[annotatingIndex]
+                               else uploadedImageUris[annotatingIndex - existingPhotoUrls.size]
+        Scaffold(
+            topBar = {
+                PDTopBar(
+                    title = "Bild annotieren",
+                    onBack = {
+                        annotatingIndex = -1
+                        annotationPaths.clear(); annotationShapes.clear()
+                    }
+                )
+            },
+            bottomBar = {
+                PDButton(
+                    text = "Annotierung übernehmen",
+                    modifier = Modifier.fillMaxWidth().padding(16.dp).navigationBarsPadding(),
+                    onClick = {
+                        scope.launch {
+                            val uri = compositeAnnotation(
+                                context, imageSource,
+                                annotationPaths.toList(), annotationShapes.toList()
+                            )
+                            if (uri != null) {
+                                // Remove original, add annotated version
+                                if (isExisting) existingPhotoUrls.removeAt(annotatingIndex)
+                                else uploadedImageUris.removeAt(annotatingIndex - existingPhotoUrls.size)
+                                uploadedImageUris.add(uri)
+                            }
+                            annotatingIndex = -1
+                            annotationPaths.clear(); annotationShapes.clear()
+                        }
+                    }
+                )
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ImageAnnotationCanvas(
+                    imageSource = imageSource,
+                    paths = annotationPaths,
+                    shapes = annotationShapes,
+                    currentPath = annotationCurrentPath,
+                    onCurrentPathChange = { annotationCurrentPath = it },
+                    shapeStart = annotationShapeStart,
+                    shapeEnd = annotationShapeEnd,
+                    onShapeStartChange = { annotationShapeStart = it },
+                    onShapeEndChange = { annotationShapeEnd = it },
+                    activeTool = annotationTool,
+                    selectedColor = annotationColor,
+                    strokeWidth = annotationStroke,
+                    onAddPath = { annotationPaths.add(it) },
+                    onAddShape = { annotationShapes.add(it) }
+                )
+                DrawingToolbar(
+                    activeTool = annotationTool,
+                    selectedColor = annotationColor,
+                    strokeWidth = annotationStroke,
+                    onToolChange = { annotationTool = it },
+                    onColorChange = { annotationColor = it },
+                    onStrokeChange = { annotationStroke = it },
+                    onUndo = { if (annotationPaths.isNotEmpty()) annotationPaths.removeLast()
+                               else if (annotationShapes.isNotEmpty()) annotationShapes.removeLast() },
+                    onClear = { annotationPaths.clear(); annotationShapes.clear() }
+                )
+                Spacer(Modifier.height(80.dp))
+            }
+        }
+        return
+    }
+
     Scaffold(
         topBar = {
             PDTopBar(
@@ -161,24 +264,42 @@ fun ExerciseEditorScreen(
             )
         },
         bottomBar = {
-            PDButton(
-                text = "Speichern",
-                modifier = Modifier.fillMaxWidth().padding(16.dp).navigationBarsPadding(),
-                onClick = {
-                    vm.saveExercise(
-                        template = ExerciseTemplate(
-                            id = templateId.ifEmpty { UUID.randomUUID().toString() },
-                            nameDE = nameDE, nameEN = nameEN,
-                            descriptionDE = descDE, descriptionEN = descEN,
-                            category = category, isCustom = true
-                        ),
-                        imageUris = uploadedImageUris.toList(),
-                        keepUrls = existingPhotoUrls.toList(),
-                        context = context
-                    ) { navController.popBackStack() }
-                },
-                enabled = nameDE.isNotBlank()
-            )
+            Column(modifier = Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                if (hasOrg) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("In Organisationsdatenbank speichern",
+                            style = MaterialTheme.typography.bodyMedium)
+                        Switch(
+                            checked = saveToOrg,
+                            onCheckedChange = { saveToOrg = it },
+                            colors = SwitchDefaults.colors(checkedThumbColor = TealPrimary, checkedTrackColor = TealPrimary.copy(alpha = 0.5f))
+                        )
+                    }
+                }
+                PDButton(
+                    text = "Speichern",
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        vm.saveExercise(
+                            template = ExerciseTemplate(
+                                id = templateId.ifEmpty { UUID.randomUUID().toString() },
+                                nameDE = nameDE, nameEN = nameEN,
+                                descriptionDE = descDE, descriptionEN = descEN,
+                                category = category, isCustom = true,
+                                organizationId = if (saveToOrg) currentUser?.organizationId ?: "" else ""
+                            ),
+                            imageUris = uploadedImageUris.toList(),
+                            keepUrls = existingPhotoUrls.toList(),
+                            context = context
+                        ) { navController.popBackStack() }
+                    },
+                    enabled = nameDE.isNotBlank()
+                )
+            }
         }
     ) { padding ->
         Column(
@@ -267,14 +388,21 @@ fun ExerciseEditorScreen(
                                     modifier = Modifier.fillMaxWidth().height(220.dp)
                                         .background(Color.White, RoundedCornerShape(12.dp))
                                         .clip(RoundedCornerShape(12.dp)),
-                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                                    contentScale = ContentScale.Fit
                                 )
+                                // Annotate button
+                                IconButton(
+                                    onClick = { annotatingIndex = idx },
+                                    modifier = Modifier.align(Alignment.BottomStart)
+                                        .background(TealPrimary.copy(alpha = 0.85f), RoundedCornerShape(topEnd = 10.dp))
+                                ) {
+                                    Icon(Icons.Default.Edit, "Annotieren", tint = Color.White)
+                                }
                                 IconButton(
                                     onClick = { existingPhotoUrls.removeAt(idx) },
                                     modifier = Modifier.align(Alignment.TopEnd)
                                 ) {
-                                    Icon(Icons.Default.Close, "Bild entfernen",
-                                        tint = androidx.compose.ui.graphics.Color.White)
+                                    Icon(Icons.Default.Close, "Bild entfernen", tint = Color.White)
                                 }
                             }
                         }
@@ -284,14 +412,24 @@ fun ExerciseEditorScreen(
                                 coil.compose.AsyncImage(
                                     model = uri,
                                     contentDescription = null,
-                                    modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp))
+                                    modifier = Modifier.fillMaxWidth().height(220.dp)
+                                        .background(Color.White, RoundedCornerShape(12.dp))
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Fit
                                 )
+                                // Annotate button
+                                IconButton(
+                                    onClick = { annotatingIndex = existingPhotoUrls.size + idx },
+                                    modifier = Modifier.align(Alignment.BottomStart)
+                                        .background(TealPrimary.copy(alpha = 0.85f), RoundedCornerShape(topEnd = 10.dp))
+                                ) {
+                                    Icon(Icons.Default.Edit, "Annotieren", tint = Color.White)
+                                }
                                 IconButton(
                                     onClick = { uploadedImageUris.removeAt(idx) },
                                     modifier = Modifier.align(Alignment.TopEnd)
                                 ) {
-                                    Icon(Icons.Default.Close, "Bild entfernen",
-                                        tint = androidx.compose.ui.graphics.Color.White)
+                                    Icon(Icons.Default.Close, "Bild entfernen", tint = Color.White)
                                 }
                             }
                         }
@@ -879,4 +1017,164 @@ fun BlankCanvas(
             }
         }
     }
+}
+
+// ─── Image Annotation Canvas ──────────────────────────────────────────────────
+
+@Composable
+fun ImageAnnotationCanvas(
+    imageSource: Any,
+    paths: List<DrawingPath>,
+    shapes: List<DrawingShape>,
+    currentPath: List<Offset>,
+    onCurrentPathChange: (List<Offset>) -> Unit,
+    shapeStart: Offset?,
+    shapeEnd: Offset?,
+    onShapeStartChange: (Offset?) -> Unit,
+    onShapeEndChange: (Offset?) -> Unit,
+    activeTool: DrawingTool,
+    selectedColor: Color,
+    strokeWidth: Float,
+    onAddPath: (DrawingPath) -> Unit,
+    onAddShape: (DrawingShape) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(480.dp)
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, TealPrimary.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+    ) {
+        coil.compose.AsyncImage(
+            model = imageSource,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize().background(Color.White),
+            contentScale = ContentScale.Fit
+        )
+        Canvas(
+            modifier = Modifier.fillMaxSize().pointerInput(activeTool) {
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    val pos = down.position
+                    if (activeTool == DrawingTool.PEN) {
+                        val pts = mutableListOf(pos)
+                        onCurrentPathChange(pts.toList())
+                        var ev = awaitPointerEvent()
+                        while (ev.changes.any { it.pressed }) {
+                            val c = ev.changes.first()
+                            pts.add(c.position); onCurrentPathChange(pts.toList()); c.consume()
+                            ev = awaitPointerEvent()
+                        }
+                        if (pts.size >= 2) onAddPath(DrawingPath(pts.toList(), selectedColor, strokeWidth))
+                        onCurrentPathChange(emptyList())
+                    } else if (activeTool == DrawingTool.CIRCLE || activeTool == DrawingTool.RECTANGLE) {
+                        onShapeStartChange(pos)
+                        var lastPos = pos
+                        var ev = awaitPointerEvent()
+                        while (ev.changes.any { it.pressed }) {
+                            val c = ev.changes.first()
+                            lastPos = c.position; onShapeEndChange(lastPos); c.consume()
+                            ev = awaitPointerEvent()
+                        }
+                        val tl = Offset(minOf(pos.x, lastPos.x), minOf(pos.y, lastPos.y))
+                        val sz = androidx.compose.ui.geometry.Size(abs(lastPos.x - pos.x), abs(lastPos.y - pos.y))
+                        if (sz.width > 5f || sz.height > 5f)
+                            onAddShape(DrawingShape(if (activeTool == DrawingTool.CIRCLE) ShapeType.CIRCLE else ShapeType.RECTANGLE, tl, sz, selectedColor))
+                        onShapeStartChange(null); onShapeEndChange(null)
+                    }
+                }
+            }
+        ) {
+            paths.forEach { p ->
+                if (p.points.size >= 2) {
+                    val path = Path().apply {
+                        moveTo(p.points.first().x, p.points.first().y)
+                        p.points.drop(1).forEach { lineTo(it.x, it.y) }
+                    }
+                    drawPath(path, p.color, style = Stroke(p.strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+                }
+            }
+            shapes.forEach { s ->
+                when (s.type) {
+                    ShapeType.CIRCLE -> drawOval(s.color, topLeft = s.topLeft, size = s.size, style = Stroke(3f))
+                    ShapeType.RECTANGLE -> drawRect(s.color, topLeft = s.topLeft, size = s.size, style = Stroke(3f))
+                }
+            }
+            if (currentPath.size >= 2) {
+                val path = Path().apply {
+                    moveTo(currentPath.first().x, currentPath.first().y)
+                    currentPath.drop(1).forEach { lineTo(it.x, it.y) }
+                }
+                drawPath(path, selectedColor, style = Stroke(strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+            }
+            val bStart = shapeStart; val bEnd = shapeEnd
+            if (bStart != null && bEnd != null) {
+                val tl = Offset(minOf(bStart.x, bEnd.x), minOf(bStart.y, bEnd.y))
+                val sz = androidx.compose.ui.geometry.Size(abs(bEnd.x - bStart.x), abs(bEnd.y - bStart.y))
+                if (activeTool == DrawingTool.CIRCLE) drawOval(selectedColor, topLeft = tl, size = sz, style = Stroke(3f))
+                else if (activeTool == DrawingTool.RECTANGLE) drawRect(selectedColor, topLeft = tl, size = sz, style = Stroke(3f))
+            }
+        }
+    }
+}
+
+// ─── Image Compositing ────────────────────────────────────────────────────────
+
+suspend fun compositeAnnotation(
+    context: android.content.Context,
+    imageSource: Any,
+    paths: List<DrawingPath>,
+    shapes: List<DrawingShape>,
+    canvasDp: Int = 480
+): Uri? {
+    return try {
+        val density = context.resources.displayMetrics.density
+        val canvasPx = (canvasDp * density).toInt()
+
+        val loader = ImageLoader(context)
+        val request = ImageRequest.Builder(context)
+            .data(imageSource).allowHardware(false)
+            .size(canvasPx, canvasPx).build()
+        val result = loader.execute(request) as? SuccessResult ?: return null
+        val srcBitmap = (result.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap ?: return null
+
+        val outBitmap = android.graphics.Bitmap.createBitmap(canvasPx, canvasPx, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(outBitmap)
+        canvas.drawColor(android.graphics.Color.WHITE)
+
+        val scale = minOf(canvasPx.toFloat() / srcBitmap.width, canvasPx.toFloat() / srcBitmap.height)
+        val left = (canvasPx - srcBitmap.width * scale) / 2f
+        val top = (canvasPx - srcBitmap.height * scale) / 2f
+        val matrix = Matrix().apply { setScale(scale, scale); postTranslate(left, top) }
+        canvas.drawBitmap(srcBitmap, matrix, null)
+
+        val paint = Paint().apply {
+            isAntiAlias = true
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+            strokeJoin = Paint.Join.ROUND
+        }
+        paths.forEach { p ->
+            if (p.points.size < 2) return@forEach
+            paint.color = p.color.toArgb(); paint.strokeWidth = p.strokeWidth
+            val path = android.graphics.Path()
+            path.moveTo(p.points.first().x, p.points.first().y)
+            p.points.drop(1).forEach { path.lineTo(it.x, it.y) }
+            canvas.drawPath(path, paint)
+        }
+        paint.strokeWidth = 3f
+        shapes.forEach { s ->
+            paint.color = s.color.toArgb()
+            val r = android.graphics.RectF(s.topLeft.x, s.topLeft.y, s.topLeft.x + s.size.width, s.topLeft.y + s.size.height)
+            when (s.type) {
+                ShapeType.CIRCLE -> canvas.drawOval(r, paint)
+                ShapeType.RECTANGLE -> canvas.drawRect(r, paint)
+            }
+        }
+
+        val file = File(context.cacheDir, "annotated_${System.currentTimeMillis()}.jpg")
+        file.outputStream().use { outBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 92, it) }
+        Uri.fromFile(file)
+    } catch (e: Exception) { null }
 }

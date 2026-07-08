@@ -61,9 +61,13 @@ fun HomeScreen(
     }
 
     val today = Calendar.getInstance()
-    val todayWorkouts = remember(plans, today) {
+    val todayWorkouts = remember(plans, sessions, today) {
         plans.flatMap { plan ->
-            plan.workoutUnits.filter { unit -> isScheduledToday(unit, today) }
+            plan.workoutUnits
+                .filter { unit ->
+                    isScheduledToday(unit, today) &&
+                    sessions.none { it.workoutUnitId == unit.id && isSameDay(it.date.toDate()) }
+                }
                 .map { Pair(plan, it) }
         }
     }

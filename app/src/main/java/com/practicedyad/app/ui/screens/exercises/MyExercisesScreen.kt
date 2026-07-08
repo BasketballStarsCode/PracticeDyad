@@ -105,20 +105,20 @@ fun MyExercisesScreen(
                                 editable = true,
                                 editLabel = if (selectedTab == 0) s.edit else s.editImages,
                                 onEdit = { navController.navigate(Screen.ExerciseEditor.createRoute(ex.id)) },
-                                onTest = if (ex.exerciseType != "standard") {
+                                onTest = if (ex.exerciseType != "standard" && ex.exerciseType != "ratings") {
                                     {
                                         navController.navigate(
                                             Screen.ReactionGame.createRoute(
                                                 exerciseType = ex.exerciseType,
                                                 exerciseId = ex.id,
-                                                roundSeconds = 60,
+                                                roundSeconds = 45,
                                                 rounds = 3,
-                                                param2 = when (ex.exerciseType) {
+                                                param2 = if (ex.param2 != 0) ex.param2 else when (ex.exerciseType) {
                                                     "circle_overlap" -> 5
                                                     "color_reaction" -> 3
                                                     else -> 0
                                                 },
-                                                param3 = when (ex.exerciseType) {
+                                                param3 = if (ex.param3 != 0) ex.param3 else when (ex.exerciseType) {
                                                     "circle_overlap" -> 2
                                                     "color_reaction" -> 3
                                                     else -> 0

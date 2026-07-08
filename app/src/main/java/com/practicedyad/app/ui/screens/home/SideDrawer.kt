@@ -12,7 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import coil.compose.AsyncImage
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.painterResource
 import com.practicedyad.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,8 +56,8 @@ fun SideDrawer(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    AsyncImage(
-                        model = R.mipmap.ic_launcher,
+                    androidx.compose.foundation.Image(
+                        painter = painterResource(R.drawable.app_logo),
                         contentDescription = "PracticeDyad",
                         modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp))
                     )

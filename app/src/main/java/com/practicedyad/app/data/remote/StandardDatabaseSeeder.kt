@@ -158,8 +158,8 @@ object StandardDatabaseSeeder {
             category = "Oberschenkel", categories = listOf("Oberschenkel", "Becken"), isTimeBased = false,
             material = "Hanteln", searchTerms = listOf("Step Up", "Quadrizeps", "Gesäßmuskulatur", "Gluteus", "Knie", "Kasten", "Box"), isCustom = false),
         ExerciseTemplate(id = "std_32", nameDE = "Schnell Antippen", nameEN = "Quick Tap",
-            descriptionDE = "Der Bildschirm ist ab dem Start der Übung dunkel. In variierenden Abständen leuchtet er kurz weiß auf. Sobald der Bildschirm weiß wird, muss so schnell wie möglich angetippt werden. Nach jeder Runde wird die durchschnittliche Reaktionsgeschwindigkeit angezeigt und im Leistungsfortschritt gespeichert.",
-            descriptionEN = "The screen is dark from the start of the exercise. At varying intervals, it briefly flashes white. As soon as the screen lights up, the athlete must tap as quickly as possible. After each round, the average reaction time is shown and saved in performance history.",
+            descriptionDE = "Der Bildschirm ist dunkel. In variierenden Abständen leuchtet er kurz weiß auf – tippe so schnell wie möglich, sobald er aufleuchtet. Du hast maximal 1 Sekunde Zeit. Nach jeder Runde siehst du deine durchschnittliche Reaktionszeit.",
+            descriptionEN = "The screen is dark. At varying intervals it briefly flashes white – tap as fast as you can as soon as it lights up. You have at most 1 second. After each round you'll see your average reaction time.",
             category = "Koordination", categories = listOf("Koordination", "Reaktion"),
             isTimeBased = true, material = "Ohne Hilfsmittel",
             searchTerms = listOf("Reaktion", "Reaktionszeit", "Antippen", "Schnelligkeit", "Reaction", "Speed", "Tap"),
@@ -203,14 +203,41 @@ object StandardDatabaseSeeder {
             descriptionDE = "Auf Hände und Knie abstützen mit Blick Richtung Boden. Die Knie befinden sich unter der Hüfte nah am Boden, ohne diesen zu berühren. Die Hände sind etwa schulterbreit unter den Schultern. Schulterblätter zusammenziehen und Bauch anspannen, sodass der Körper eine gerade Linie bildet.",
             descriptionEN = "Support yourself on your hands and knees, looking toward the floor. Knees are below your hips, hovering just above the floor. Hands are approximately shoulder-width apart. Squeeze your shoulder blades and engage your core so your body forms a straight line from hips to shoulders.",
             category = "Bauch", categories = listOf("Bauch"), isTimeBased = true,
-            material = "Ohne Hilfsmittel", searchTerms = listOf("Rumpf", "Core", "Vierfüßlerstand", "Quadruped", "Isometrisch", "Grundspannung", "Bauchmuskulatur"), isCustom = false)
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Rumpf", "Core", "Vierfüßlerstand", "Quadruped", "Isometrisch", "Grundspannung", "Bauchmuskulatur"), isCustom = false),
+        ExerciseTemplate(id = "std_38", nameDE = "Schnell Antippen nach Feldern", nameEN = "Quick Tap by Field",
+            descriptionDE = "Der Bildschirm ist in 2–8 gleichgroße Felder aufgeteilt. Ein Feld leuchtet zufällig auf (Standard) oder eine Farbe erscheint in der Mitte (Fortgeschritten) – tippe schnell das passende Feld an. Misst Reaktionszeit und Treffergenauigkeit.",
+            descriptionEN = "The screen is divided into 2–8 equal sections. One section lights up randomly (standard) or a color appears in the center (advanced) – quickly tap the matching section. Measures reaction time and accuracy.",
+            category = "Koordination", categories = listOf("Koordination"), isTimeBased = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Reaktion", "Koordination", "Schnelligkeit", "Felder", "Tippen", "Reaction", "Tap", "Speed"), isCustom = false,
+            exerciseType = "field_tap", param2 = 4, param3 = 0),
+        ExerciseTemplate(id = "std_39", nameDE = "Schnell Antippen nach Farben", nameEN = "Quick Tap by Color",
+            descriptionDE = "Farben blinken auf dem Bildschirm auf – tippe nur bei der Zielfarbe. Andere Farben sollen ignoriert werden. Misst Reaktionszeit und Treffergenauigkeit.",
+            descriptionEN = "Colors flash on screen – tap only when you see the target color. Ignore all other colors. Measures reaction time and accuracy.",
+            category = "Koordination", categories = listOf("Koordination"), isTimeBased = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Reaktion", "Farbe", "Koordination", "Schnelligkeit", "Color", "Reaction", "Tap"), isCustom = false,
+            exerciseType = "color_tap", param2 = 4, param3 = 0),
+        ExerciseTemplate(id = "std_40", nameDE = "Schnell Antippen mit Signalton", nameEN = "Quick Tap with Audio Signal",
+            descriptionDE = "Tippe so schnell wie möglich nach dem Signalton auf den Bildschirm. Das Intervall zwischen den Tönen variiert zufällig. Misst die Reaktionszeit auf akustische Reize.",
+            descriptionEN = "Tap the screen as fast as possible after the beep. The interval between beeps varies randomly. Measures reaction time to auditory stimuli.",
+            category = "Koordination", categories = listOf("Koordination"), isTimeBased = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Reaktion", "Ton", "Audio", "Koordination", "Schnelligkeit", "Beep", "Sound", "Reaction"), isCustom = false,
+            exerciseType = "audio_tap", param2 = 0, param3 = 0),
+        ExerciseTemplate(id = "std_41", nameDE = "Paare finden", nameEN = "Find the Pairs",
+            descriptionDE = "Mehrere Bilder werden kurz angezeigt – tippe so schnell wie möglich, wenn du ein doppeltes Bild siehst. Wenn kein Paar vorhanden ist, nicht tippen. Misst Erkennungsgeschwindigkeit und Genauigkeit.",
+            descriptionEN = "Several images are shown briefly – tap as quickly as possible if you spot a duplicate. If no pair is visible, don't tap. Measures recognition speed and accuracy.",
+            category = "Koordination", categories = listOf("Koordination"), isTimeBased = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Reaktion", "Paare", "Erkennung", "Koordination", "Pairs", "Memory", "Reaction"), isCustom = false,
+            exerciseType = "pair_find", param2 = 4, param3 = 600)
     )
+
+    // IDs that should always be overwritten (description/content updates)
+    private val forceUpdate = setOf("std_32", "std_41")
 
     suspend fun seedIfNeeded(db: FirebaseFirestore) {
         val col = db.collection("standardExercises")
         val existing = col.get().await().documents.map { it.id }.toSet()
         exercises.forEach { ex ->
-            if (ex.id !in existing) {
+            if (ex.id !in existing || ex.id in forceUpdate) {
                 col.document(ex.id).set(ex).await()
             }
         }

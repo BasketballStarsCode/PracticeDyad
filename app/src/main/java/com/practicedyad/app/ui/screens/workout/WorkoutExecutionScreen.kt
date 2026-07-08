@@ -121,7 +121,7 @@ fun WorkoutExecutionScreen(
             )
         },
         bottomBar = {
-            if (unit.isCircuit && !showCircuitRest) {
+            if (unit.circuit && !showCircuitRest) {
                 val isLastExercise = circuitExerciseIdx == exercises.size - 1
                 val isLastRound = circuitRound == unit.circuitRounds
                 PDButton(
@@ -178,7 +178,7 @@ fun WorkoutExecutionScreen(
                         }
                     }
                 )
-            } else if (!unit.isCircuit) {
+            } else if (!unit.circuit) {
                 if (!freeOrder) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -215,7 +215,7 @@ fun WorkoutExecutionScreen(
             }
         }
     ) { padding ->
-        if (unit.isCircuit && showCircuitRest) {
+        if (unit.circuit && showCircuitRest) {
             // Circuit rest screen
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -224,7 +224,7 @@ fun WorkoutExecutionScreen(
                         color = TealPrimary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                 }
             }
-        } else if (unit.isCircuit) {
+        } else if (unit.circuit) {
             // Circuit mode: one exercise at a time, track round
             val ex = exercises.getOrNull(circuitExerciseIdx) ?: return@Scaffold
             val activeEx = resolveActiveExercise(ex, exercisePrefs)
@@ -251,7 +251,7 @@ fun WorkoutExecutionScreen(
                         { navController.navigate(Screen.ReactionGame.createRoute(
                             exerciseType = activeEx.exerciseType,
                             exerciseId = activeEx.templateId.ifEmpty { activeEx.id },
-                            roundSeconds = activeEx.gameParams["roundSeconds"] ?: 60,
+                            roundSeconds = activeEx.gameParams["roundSeconds"] ?: 45,
                             rounds = activeEx.sets.coerceAtLeast(1),
                             param2 = when (activeEx.exerciseType) {
                                 "circle_overlap" -> activeEx.gameParams["circleCount"] ?: 5
@@ -285,7 +285,7 @@ fun WorkoutExecutionScreen(
                             { navController.navigate(Screen.ReactionGame.createRoute(
                                 exerciseType = activeEx.exerciseType,
                                 exerciseId = activeEx.templateId.ifEmpty { activeEx.id },
-                                roundSeconds = activeEx.gameParams["roundSeconds"] ?: 60,
+                                roundSeconds = activeEx.gameParams["roundSeconds"] ?: 45,
                                 rounds = activeEx.sets.coerceAtLeast(1),
                                 param2 = when (activeEx.exerciseType) {
                                     "circle_overlap" -> activeEx.gameParams["circleCount"] ?: 5
@@ -316,7 +316,7 @@ fun WorkoutExecutionScreen(
                                 { navController.navigate(Screen.ReactionGame.createRoute(
                                     exerciseType = activeEx.exerciseType,
                                     exerciseId = activeEx.templateId.ifEmpty { activeEx.id },
-                                    roundSeconds = activeEx.gameParams["roundSeconds"] ?: 60,
+                                    roundSeconds = activeEx.gameParams["roundSeconds"] ?: 45,
                                     rounds = activeEx.sets.coerceAtLeast(1),
                                     param2 = when (activeEx.exerciseType) {
                                         "circle_overlap" -> activeEx.gameParams["circleCount"] ?: 5
@@ -374,7 +374,7 @@ private fun GameExerciseView(exercise: PlannedExercise, onStartGame: () -> Unit)
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
-        val roundSeconds = exercise.gameParams["roundSeconds"] ?: 60
+        val roundSeconds = exercise.gameParams["roundSeconds"] ?: 45
         val rounds = exercise.sets.coerceAtLeast(1)
         Text(
             "$rounds Runde${if (rounds != 1) "n" else ""} × ${roundSeconds}s",

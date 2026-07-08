@@ -740,7 +740,7 @@ fun CircuitSection(unit: WorkoutUnit, onUpdate: (WorkoutUnit) -> Unit) {
             IconButton(onClick = {
                 onUpdate(unit.copy(
                     exercises = unit.exercises.map { it.copy(circuitGroupId = "") },
-                    isCircuit = false
+                    circuit = false
                 ))
             }, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
@@ -812,7 +812,7 @@ fun CircuitSection(unit: WorkoutUnit, onUpdate: (WorkoutUnit) -> Unit) {
                         if (ex.id in selected) ex.copy(circuitGroupId = groupId)
                         else ex.copy(circuitGroupId = "")
                     }
-                    onUpdate(unit.copy(exercises = updated, isCircuit = selected.isNotEmpty()))
+                    onUpdate(unit.copy(exercises = updated, circuit = selected.isNotEmpty()))
                     showPicker = false
                 }) { Text(s.apply) }
             },

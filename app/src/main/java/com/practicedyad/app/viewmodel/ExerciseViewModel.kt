@@ -52,19 +52,19 @@ class ExerciseViewModel @Inject constructor(
         }
     }
 
-    private val _selectedTemplate = MutableStateFlow<ExerciseTemplate?>(null)
-    val selectedTemplate: StateFlow<ExerciseTemplate?> = _selectedTemplate.asStateFlow()
+    private val _targetTemplateId = MutableStateFlow("")
+
+    // Reaktiv: sobald Übungen geladen sind und eine ID gesetzt ist, wird das Template gefunden
+    val selectedTemplate: StateFlow<ExerciseTemplate?> = combine(
+        _customExercises, _standardExercises, _targetTemplateId
+    ) { custom, standard, id ->
+        if (id.isEmpty()) null else (custom + standard).find { it.id == id }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun loadTemplate(templateId: String) {
         if (templateId.isEmpty()) return
-        viewModelScope.launch {
-            val all = _customExercises.value + _standardExercises.value
-            _selectedTemplate.value = all.find { it.id == templateId }
-            // If not yet loaded, reload
-            if (_selectedTemplate.value == null) {
-                loadExercises()
-            }
-        }
+        _targetTemplateId.value = templateId
+        loadExercises()
     }
 
     fun setSearch(query: String) { _searchQuery.value = query }
