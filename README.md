@@ -182,11 +182,7 @@ This project is **proprietary** — all rights reserved. Unauthorized copying or
 
 ---
 
-## Contact & Support
 
-- **Email:** dilemkaya05@gmail.com
-- **Organization:** BasketballStarsCode
-- **Repository:** https://github.com/BasketballStarsCode/PracticeDyad
 
 ---
 
