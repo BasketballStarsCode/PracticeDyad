@@ -29,6 +29,7 @@ import com.practicedyad.app.ui.theme.LocalAppStrings
 import com.practicedyad.app.ui.theme.TealPrimary
 import com.practicedyad.app.ui.navigation.Screen
 import com.practicedyad.app.viewmodel.ChatViewModel
+import com.practicedyad.app.viewmodel.TrainingNotesViewModel
 import com.practicedyad.app.viewmodel.TrainingPlanViewModel
 import com.practicedyad.app.viewmodel.WorkoutViewModel
 import kotlinx.coroutines.delay
@@ -41,7 +42,8 @@ fun WorkoutExecutionScreen(
     planId: String,
     workoutVm: WorkoutViewModel = hiltViewModel(),
     planVm: TrainingPlanViewModel = hiltViewModel(),
-    chatVm: ChatViewModel = hiltViewModel()
+    chatVm: ChatViewModel = hiltViewModel(),
+    notesVm: TrainingNotesViewModel = hiltViewModel()
 ) {
     val plans by planVm.plans.collectAsStateWithLifecycle()
     val session by workoutVm.activeSession.collectAsStateWithLifecycle()
@@ -244,10 +246,10 @@ fun WorkoutExecutionScreen(
                     onSetUpdate = { setIdx, weight, reps, duration ->
                         workoutVm.updateSetEntry(circuitExerciseIdx, setIdx, weight, reps, duration)
                     },
-                    onSwapExercise = { idx ->
-                        workoutVm.setExercisePreference(ex.id, idx)
-                    },
-                    onStartGame = if (activeEx.exerciseType != "standard") {
+                    onSwapExercise = { idx -> workoutVm.setExercisePreference(ex.id, idx) },
+                    onSaveNote = { text -> notesVm.addNote(text) },
+                    onRatingsUpdate = { r -> workoutVm.updateRatings(circuitExerciseIdx, r) },
+                    onStartGame = if (activeEx.exerciseType !in listOf("standard", "reflection_journal", "reflection_weekly", "ratings")) {
                         { navController.navigate(Screen.ReactionGame.createRoute(
                             exerciseType = activeEx.exerciseType,
                             exerciseId = activeEx.templateId.ifEmpty { activeEx.id },
@@ -281,7 +283,9 @@ fun WorkoutExecutionScreen(
                             workoutVm.updateSetEntry(currentIndex, setIdx, weight, reps, duration)
                         },
                         onSwapExercise = { idx -> workoutVm.setExercisePreference(ex.id, idx) },
-                        onStartGame = if (activeEx.exerciseType != "standard") {
+                        onSaveNote = { text -> notesVm.addNote(text) },
+                        onRatingsUpdate = { r -> workoutVm.updateRatings(currentIndex, r) },
+                        onStartGame = if (activeEx.exerciseType !in listOf("standard", "reflection_journal", "reflection_weekly", "ratings")) {
                             { navController.navigate(Screen.ReactionGame.createRoute(
                                 exerciseType = activeEx.exerciseType,
                                 exerciseId = activeEx.templateId.ifEmpty { activeEx.id },
@@ -312,7 +316,9 @@ fun WorkoutExecutionScreen(
                                 workoutVm.updateSetEntry(idx, setIdx, weight, reps, duration)
                             },
                             onSwapExercise = { altIdx -> workoutVm.setExercisePreference(ex.id, altIdx) },
-                            onStartGame = if (activeEx.exerciseType != "standard") {
+                            onSaveNote = { text -> notesVm.addNote(text) },
+                            onRatingsUpdate = { r -> workoutVm.updateRatings(idx, r) },
+                            onStartGame = if (activeEx.exerciseType !in listOf("standard", "reflection_journal", "reflection_weekly", "ratings")) {
                                 { navController.navigate(Screen.ReactionGame.createRoute(
                                     exerciseType = activeEx.exerciseType,
                                     exerciseId = activeEx.templateId.ifEmpty { activeEx.id },
@@ -422,9 +428,26 @@ fun ExerciseView(
     exercisePrefs: Map<String, Int> = emptyMap(),
     onSetUpdate: (Int, Float?, Int?, Int?) -> Unit,
     onSwapExercise: ((Int) -> Unit)? = null,
-    onStartGame: (() -> Unit)? = null
+    onStartGame: (() -> Unit)? = null,
+    onSaveNote: ((String) -> Unit)? = null,
+    onRatingsUpdate: ((Map<String, Int>) -> Unit)? = null
 ) {
     val s = LocalAppStrings.current
+
+    if (exercise.exerciseType in listOf("reflection_journal", "reflection_weekly")) {
+        ReflectionExerciseView(exercise = exercise, onSaveNote = onSaveNote)
+        return
+    }
+
+    if (exercise.exerciseType == "ratings") {
+        RatingsExerciseView(
+            exercise = exercise,
+            existingRatings = sessionEntry?.ratings ?: emptyMap(),
+            onRatingsUpdate = onRatingsUpdate
+        )
+        return
+    }
+
     if (exercise.exerciseType != "standard" && onStartGame != null) {
         GameExerciseView(exercise = exercise, onStartGame = onStartGame)
         return
@@ -530,6 +553,159 @@ fun ExerciseView(
                 onDurationChange = { onSetUpdate(setIdx, null, null, it) },
                 onComplete = { onSetUpdate(setIdx, null, null, null) }
             )
+        }
+    }
+}
+
+@Composable
+private fun ReflectionExerciseView(
+    exercise: PlannedExercise,
+    onSaveNote: ((String) -> Unit)?
+) {
+    var text by remember { mutableStateOf("") }
+    var saved by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        if (exercise.customPhotoUrls.isNotEmpty()) {
+            AsyncImage(
+                model = exercise.customPhotoUrls.first(),
+                contentDescription = exercise.customName,
+                modifier = Modifier.fillMaxWidth().height(160.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Fit
+            )
+        }
+        Text(exercise.customName, style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold)
+        if (exercise.customDescription.isNotEmpty()) {
+            Text(exercise.customDescription, style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        OutlinedTextField(
+            value = text,
+            onValueChange = { text = it; saved = false },
+            modifier = Modifier.fillMaxWidth().height(200.dp),
+            placeholder = { Text("Hier schreiben …") },
+            maxLines = 12,
+            shape = RoundedCornerShape(12.dp)
+        )
+        if (saved) {
+            Surface(shape = RoundedCornerShape(10.dp), color = TealPrimary.copy(alpha = 0.15f)) {
+                Text("In Trainingsnotizen gespeichert",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.bodySmall, color = TealPrimary)
+            }
+        }
+        PDButton(
+            text = if (saved) "Erneut speichern" else "In Trainingsnotizen speichern",
+            onClick = {
+                if (text.isNotBlank()) {
+                    onSaveNote?.invoke(text)
+                    saved = true
+                }
+            },
+            enabled = text.isNotBlank(),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun RatingsExerciseView(
+    exercise: PlannedExercise,
+    existingRatings: Map<String, Int>,
+    onRatingsUpdate: ((Map<String, Int>) -> Unit)?
+) {
+    val items = exercise.ratingItems
+    val scale = exercise.ratingScale.coerceIn(2, 10)
+    var ratings by remember(existingRatings) { mutableStateOf(existingRatings) }
+    var showCoachInfo by remember { mutableStateOf(false) }
+
+    // Coach-Info-Text (alte Beschreibung aus dem Template, die für Coaches gedacht ist)
+    val coachInfo = "Coaches können im Trainingsplan Items eintragen und die Skala festlegen (1–N). " +
+        "Athlet*innen bewerten die Items. Die Ergebnisse werden mit dem Workout gespeichert und " +
+        "können vom Coach eingesehen werden, wenn Teilen aktiviert ist."
+
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(exercise.customName, style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            IconButton(onClick = { showCoachInfo = true }, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Default.Info, "Info für Coaches",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+            }
+        }
+        if (exercise.customDescription.isNotEmpty()) {
+            Text(
+                exercise.customDescription.replace("N", scale.toString()),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (showCoachInfo) {
+            AlertDialog(
+                onDismissRequest = { showCoachInfo = false },
+                title = { Text("Info für Coaches", fontWeight = FontWeight.Bold) },
+                text = { Text(coachInfo, style = MaterialTheme.typography.bodyMedium) },
+                confirmButton = {
+                    TextButton(onClick = { showCoachInfo = false }) { Text("OK") }
+                },
+                shape = RoundedCornerShape(16.dp)
+            )
+        }
+        if (items.isEmpty()) {
+            Surface(shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.fillMaxWidth()) {
+                Text("Keine Items konfiguriert. Coach muss Items im Trainingsplan eintragen.",
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            items.forEach { item ->
+                val current = ratings[item] ?: 0
+                Surface(shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(item, style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            (1..scale).forEach { n ->
+                                val selected = current == n
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (selected) TealPrimary else MaterialTheme.colorScheme.surface,
+                                    border = if (!selected) androidx.compose.foundation.BorderStroke(
+                                        1.dp, MaterialTheme.colorScheme.outline) else null,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable {
+                                            val updated = ratings.toMutableMap()
+                                            updated[item] = n
+                                            ratings = updated
+                                            onRatingsUpdate?.invoke(updated)
+                                        }
+                                ) {
+                                    Box(contentAlignment = Alignment.Center,
+                                        modifier = Modifier.padding(vertical = 10.dp)) {
+                                        Text("$n",
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (selected) Color.White
+                                                else MaterialTheme.colorScheme.onSurface)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

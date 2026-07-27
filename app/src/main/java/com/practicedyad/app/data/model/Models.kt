@@ -88,8 +88,61 @@ data class ExerciseTemplate(
     // "standard" | "reaction_tap" | "circle_overlap" | "color_reaction" | "field_tap" | "color_tap" | "audio_tap" | "pair_find"
     val exerciseType: String = "standard",
     val param2: Int = 0,
-    val param3: Int = 0
+    val param3: Int = 0,
+    val isDistanceBased: Boolean = false,
+    val isInterval: Boolean = false,
+    val intervals: List<IntervalConfig> = emptyList(),
+    val ratingItems: List<String> = emptyList(),
+    val ratingScale: Int = 5
 )
+
+data class IntervalConfig(
+    val name: String = "",
+    val durationSeconds: Int = 0,
+    val distanceMeters: Int = 0,
+    val repetitions: Int = 1
+)
+
+// Mapping sub-category → parent category
+val PARENT_CATEGORY = mapOf(
+    "Unterschenkel" to "Krafttraining",
+    "Oberschenkel" to "Krafttraining",
+    "Becken" to "Krafttraining",
+    "Bauch" to "Krafttraining",
+    "Rücken" to "Krafttraining",
+    "Schulter" to "Krafttraining",
+    "Brust" to "Krafttraining",
+    "Oberarme" to "Krafttraining",
+    "Unterarme" to "Krafttraining",
+    "Plyometrisches Training" to "Plyometrisches Training",
+    "Cardiovaskuläres Training" to "Cardiovaskuläres Training",
+    "Mobilisation" to "Mobilisation",
+    "Mobilisieren" to "Mobilisation",
+    "Koordination" to "Koordination",
+    "Reflektion" to "Reflektion"
+)
+
+val PARENT_CATEGORIES = listOf(
+    "Krafttraining",
+    "Plyometrisches Training",
+    "Cardiovaskuläres Training",
+    "Mobilisation",
+    "Koordination",
+    "Reflektion"
+)
+
+val KRAFTTRAINING_SUBCATEGORIES = listOf(
+    "Unterschenkel", "Oberschenkel", "Becken", "Bauch", "Rücken", "Brust", "Oberarme", "Unterarme"
+)
+
+fun categoryOrder(category: String): Int {
+    val parent = PARENT_CATEGORY[category] ?: category
+    val parentIdx = PARENT_CATEGORIES.indexOf(parent).let { if (it < 0) 99 else it }
+    val subIdx = if (parent == "Krafttraining")
+        KRAFTTRAINING_SUBCATEGORIES.indexOf(category).let { if (it < 0) 50 else it }
+    else 0
+    return parentIdx * 100 + subIdx
+}
 
 // ─── Training Plan ────────────────────────────────────────────────────────────
 
@@ -148,6 +201,10 @@ data class PlannedExercise(
     val restSeconds: Int = 60,
     val trackWeight: Boolean = false,
     val trackReps: Boolean = false,
+    val trackDistance: Boolean = false,
+    val trackTempo: Boolean = false,
+    val ratingItems: List<String> = emptyList(),
+    val ratingScale: Int = 5,
     val orderIndex: Int = 0,
     val alternativeExercises: List<AlternativeExercise> = emptyList(),
     val circuitGroupId: String = "",
@@ -191,7 +248,8 @@ data class WorkoutSession(
 data class ExerciseEntry(
     val exerciseId: String = "",
     val exerciseName: String = "",
-    val sets: List<SetEntry> = emptyList()
+    val sets: List<SetEntry> = emptyList(),
+    val ratings: Map<String, Int> = emptyMap()
 )
 
 data class SetEntry(
@@ -199,6 +257,8 @@ data class SetEntry(
     val weight: Float = 0f,
     val reps: Int = 0,
     val durationSeconds: Int = 0,
+    val distanceMeters: Float = 0f,
+    val tempoKmh: Float = 0f,
     val completed: Boolean = false
 )
 
@@ -213,6 +273,8 @@ data class ProgressEntry(
     val maxWeight: Float = 0f,
     val totalReps: Int = 0,
     val totalDurationSeconds: Int = 0,
+    val totalDistanceMeters: Float = 0f,
+    val avgTempoKmh: Float = 0f,
     // game exercise results
     val avgReactionMs: Long = 0,
     val correctAttempts: Int = 0,

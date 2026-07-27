@@ -647,6 +647,15 @@ private fun CircleOverlapGame(
                 Text("${(timeLeftMs / 1000)}s", fontSize = 28.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
                 Text("✓ $correctCount  ✗ $wrongCount", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Tippe wenn $overlapRequired gefüllt${if (overlapRequired == 1) "er" else "e"} Kreis${if (overlapRequired == 1) "" else "e"} " +
+                    "einen ungefüllten Kreis berühr${if (overlapRequired == 1) "t" else "en"}",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = androidx.compose.ui.Modifier.padding(horizontal = 24.dp)
+                )
             }
         }
 
@@ -1179,7 +1188,8 @@ private fun PairFindGame(
     totalRounds: Int,
     onRoundDone: (correct: Int, wrong: Int) -> Unit
 ) {
-    val displayMs = displayMs.toLong().coerceIn(200L, 10000L)
+    val displayDuration = displayMs.toLong().coerceIn(200L, 10000L)
+    val blankDuration = 600L
 
     var phase by remember(currentRound) { mutableStateOf(GamePhase.COUNTDOWN) }
     var currentObjects by remember(currentRound) { mutableStateOf<List<String>>(emptyList()) }
@@ -1187,6 +1197,8 @@ private fun PairFindGame(
     var setStartTime by remember(currentRound) { mutableStateOf(0L) }
     var tappedThisSet by remember(currentRound) { mutableStateOf(false) }
     var showingSet by remember(currentRound) { mutableStateOf(false) }
+    // Tap-Fenster bleibt offen bis zur nächsten Objektkonstellation (auch während der Pause)
+    var tapWindowOpen by remember(currentRound) { mutableStateOf(false) }
     var timeLeftMs by remember(currentRound) { mutableStateOf(roundSeconds * 1000L) }
     var correctCount by remember(currentRound) { mutableStateOf(0) }
     var wrongCount by remember(currentRound) { mutableStateOf(0) }
@@ -1210,7 +1222,10 @@ private fun PairFindGame(
             while (phase == GamePhase.PLAYING) {
                 delay(100)
                 timeLeftMs = ((roundSeconds * 1000L) - (System.currentTimeMillis() - gameStart)).coerceAtLeast(0)
-                if (timeLeftMs <= 0L) { showingSet = false; currentObjects = emptyList(); phase = GamePhase.RESULT }
+                if (timeLeftMs <= 0L) {
+                    tapWindowOpen = false; showingSet = false; currentObjects = emptyList()
+                    phase = GamePhase.RESULT
+                }
             }
         }
         launch {
@@ -1221,11 +1236,17 @@ private fun PairFindGame(
                 setStartTime = System.currentTimeMillis()
                 tappedThisSet = false
                 showingSet = true
-                delay(displayMs)
-                if (dup && !tappedThisSet) wrongCount++
+                tapWindowOpen = true          // Tap-Fenster öffnet sich mit den Bildern
+
+                delay(displayDuration)        // Bilder sichtbar
+
                 showingSet = false
-                currentObjects = emptyList()
-                delay(600)
+                currentObjects = emptyList()  // Bilder verschwinden, Fenster bleibt offen
+
+                delay(blankDuration)          // Pause – Tippen noch möglich
+
+                tapWindowOpen = false         // Fenster schließt sich mit der nächsten Konstellation
+                if (dup && !tappedThisSet) wrongCount++
             }
         }
     }
@@ -1236,7 +1257,7 @@ private fun PairFindGame(
             .background(Color(0xFF0D0D0D))
             .pointerInput(currentRound, phase) {
                 detectTapGestures {
-                    if (phase != GamePhase.PLAYING || !showingSet || tappedThisSet) return@detectTapGestures
+                    if (phase != GamePhase.PLAYING || !tapWindowOpen || tappedThisSet) return@detectTapGestures
                     tappedThisSet = true
                     if (hasDuplicate) {
                         reactionTimes.add(System.currentTimeMillis() - setStartTime)
@@ -1258,7 +1279,8 @@ private fun PairFindGame(
                         }
                     }
                 } else {
-                    Text("Gleiche Bilder → Tippen!", color = Color.White.copy(alpha = 0.5f), fontSize = 16.sp, textAlign = TextAlign.Center)
+                    Text("Gleiche Bilder → Tippen!", color = Color.White.copy(alpha = 0.5f),
+                        fontSize = 16.sp, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(4.dp))
                     Text("${timeLeftMs / 1000}s  ·  +$correctCount -$wrongCount",
                         color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)

@@ -10,7 +10,7 @@ object StandardDatabaseSeeder {
         ExerciseTemplate(id = "std_01", nameDE = "Auf dem Bauch liegend Klatschen", nameEN = "Clapping while Lying on the Stomach",
             descriptionDE = "Auf den Bauch legen mit gestreckten Beinen und Armen, ohne dass diese den Boden berühren. Der Blick geht zum Boden. Dann wechselnd vor dem Kopf und hinter dem Körper mit gestreckten Armen in die Hände klatschen.",
             descriptionEN = "Lie on your stomach with arms and legs extended, without letting them touch the floor. Look down. Then alternately clap your hands in front of your head and behind your body with straight arms.",
-            category = "Rücken", categories = listOf("Rücken", "Schultern"), isTimeBased = false,
+            category = "Rücken", categories = listOf("Rücken"), isTimeBased = false,
             material = "Ohne Hilfsmittel", searchTerms = listOf("Schwimmer", "Schulterblätter", "Shoulder Blades", "Trapezius", "Latissimus dorsi", "Trapezmuskel", "Schulter", "Shoulder"), isCustom = false),
         ExerciseTemplate(id = "std_02", nameDE = "Langhantel-Bankdrücken", nameEN = "Barbell Bench Press",
             descriptionDE = "Rücken und Gesäß liegen auf der Bank, die Füße stehen auf dem Boden. Die Bauchmuskulatur anspannen und die Langhantel von der Halterung heben. Muskuläre Spannung im Rumpf halten und dabei die Langhantel kontrolliert Richtung Brustkorb absenken, dabei die obere Rückenmuskulatur aktivieren und wieder anheben.",
@@ -55,7 +55,7 @@ object StandardDatabaseSeeder {
         ExerciseTemplate(id = "std_10", nameDE = "Holzhacken", nameEN = "Alternate Front Raises on Stomach",
             descriptionDE = "Auf den Bauch legen mit gestreckten Beinen und Armen, ohne dass diese den Boden berühren. Der Blick geht zum Boden. Dann wechselnd erst den einen Arm und das gegenüberliegende Bein heben und dann absenken, während sich der andere Arm und das andere Bein heben. Die Bewegung kommt nur aus der Hüfte und aus den Schultern.",
             descriptionEN = "Lie on your stomach with extended arms and legs without touching the floor. Look down. Alternately raise one arm and the opposite leg, then lower them as the other arm and leg rise. Movement comes only from the hips and shoulders.",
-            category = "Rücken", categories = listOf("Rücken", "Schultern"), isTimeBased = true,
+            category = "Rücken", categories = listOf("Rücken"), isTimeBased = true,
             material = "Ohne Hilfsmittel", searchTerms = listOf("Deltamuskel", "Deltoid", "Schulter", "Shoulder", "Kapuzenmuskel", "Trapezius", "Rhomboid", "Superman"), isCustom = false),
         ExerciseTemplate(id = "std_11", nameDE = "Hüfte Außenrotation im Seitstütz", nameEN = "Hip External Rotation in Side Plank",
             descriptionDE = "Mit angewinkelten Beinen in den Seitstütz gehen. Die Hüfte ist dabei leicht gebeugt und der untere Ellenbogen auf Schulterhöhe. Rumpf anspannen und dann das obere Knie nach außen und wieder nach innen rotieren, ohne dass sich der Fuß anhebt.",
@@ -158,23 +158,23 @@ object StandardDatabaseSeeder {
             category = "Oberschenkel", categories = listOf("Oberschenkel", "Becken"), isTimeBased = false,
             material = "Hanteln", searchTerms = listOf("Step Up", "Quadrizeps", "Gesäßmuskulatur", "Gluteus", "Knie", "Kasten", "Box"), isCustom = false),
         ExerciseTemplate(id = "std_32", nameDE = "Schnell Antippen", nameEN = "Quick Tap",
-            descriptionDE = "Der Bildschirm ist dunkel. In variierenden Abständen leuchtet er kurz weiß auf – tippe so schnell wie möglich, sobald er aufleuchtet. Du hast maximal 1 Sekunde Zeit. Nach jeder Runde siehst du deine durchschnittliche Reaktionszeit.",
-            descriptionEN = "The screen is dark. At varying intervals it briefly flashes white – tap as fast as you can as soon as it lights up. You have at most 1 second. After each round you'll see your average reaction time.",
-            category = "Koordination", categories = listOf("Koordination", "Reaktion"),
+            descriptionDE = "Der Bildschirm ist dunkel. In variierenden Abständen leuchtet er kurz weiß auf – tippe so schnell wie möglich, sobald er aufleuchtet. Nach jeder Runde siehst du deine durchschnittliche Reaktionszeit.",
+            descriptionEN = "The screen is dark. At varying intervals it briefly flashes white – tap as fast as you can as soon as it lights up. After each round you'll see your average reaction time.",
+            category = "Koordination", categories = listOf("Koordination"),
             isTimeBased = true, material = "Ohne Hilfsmittel",
             searchTerms = listOf("Reaktion", "Reaktionszeit", "Antippen", "Schnelligkeit", "Reaction", "Speed", "Tap"),
             isCustom = false, exerciseType = "reaction_tap"),
         ExerciseTemplate(id = "std_33", nameDE = "Kreise treffen", nameEN = "Circle Hit",
             descriptionDE = "Auf hellem Hintergrund bewegen sich kleine gefüllte Kreise von oben nach unten und leicht größere ungefüllte Kreise von Seite zu Seite. Wenn sich eine vorgegebene Anzahl an gefüllten und ungefüllten Kreisen überlappen, muss der Bildschirm angetippt werden. Der Coach stellt Rundenzeit, Kreisanzahl und nötige Überlappungen ein. Nach jeder Runde werden richtige und falsche Versuche angezeigt.",
             descriptionEN = "On a bright background, small filled circles move top to bottom and slightly larger unfilled circles move side to side. When a set number of filled and unfilled circles overlap, the athlete must tap the screen. The coach sets round time, number of circles, and required overlaps. After each round, correct and incorrect attempts are displayed.",
-            category = "Koordination", categories = listOf("Koordination", "Reaktion"),
+            category = "Koordination", categories = listOf("Koordination"),
             isTimeBased = true, material = "Ohne Hilfsmittel",
             searchTerms = listOf("Koordination", "Reaktion", "Kreise", "Circles", "Auge", "Eye", "Konzentration"),
             isCustom = false, exerciseType = "circle_overlap"),
         ExerciseTemplate(id = "std_34", nameDE = "Reaktion auf Farben", nameEN = "Color Reaction",
-            descriptionDE = "In variierenden Abständen werden verschiedene Farben auf dem Bildschirm angezeigt. Der Coach legt fest, welche Aufgabe bei welcher Farbe ausgeführt werden soll – z.B. zu einem bestimmten Hütchen laufen oder ein bestimmtes Körperteil bewegen. Der Coach stellt Rundenzeit, Durchschnittsintervall und Anzahl der Farben ein. Die Performance dieser Übung wird nicht automatisch getrackt.",
-            descriptionEN = "At varying intervals, different colors are shown on the screen. The coach defines which task to perform for each color — e.g. run to a specific cone or move a specific body part. The coach sets round duration, average interval, and number of colors. Performance of this exercise is not automatically tracked.",
-            category = "Koordination", categories = listOf("Koordination", "Reaktion", "Beweglichkeit"),
+            descriptionDE = "Berühre ein vorgegebenes Objekt entsprechend der erscheinenden Farbe, bevor die nächste Farbe erscheint.",
+            descriptionEN = "Touch the designated object that matches the displayed color before the next color appears.",
+            category = "Koordination", categories = listOf("Koordination"),
             isTimeBased = true, material = "Ohne Hilfsmittel",
             searchTerms = listOf("Farbe", "Color", "Reaktion", "Reaktionsspiel", "Hütchen", "Koordination", "Agility"),
             isCustom = false, exerciseType = "color_reaction"),
@@ -193,8 +193,8 @@ object StandardDatabaseSeeder {
             searchTerms = listOf("Reflexion", "Woche", "Erfolge", "Weekly", "Review", "Ziele", "Goals"),
             isCustom = false, exerciseType = "reflection_weekly"),
         ExerciseTemplate(id = "std_37", nameDE = "Ratings", nameEN = "Ratings",
-            descriptionDE = "Coaches können eigene Bewertungsskalen (1–5) erstellen und festlegen, ob Athlet*innen diese mit dem Coach teilen. Athlet*innen füllen die Bewertungen aus. Wenn das Teilen aktiviert ist, kann der Coach die Ratings wie andere Trainingsergebnisse einsehen.",
-            descriptionEN = "Coaches can create custom rating scales (1–5) and set whether athletes share them with the coach. Athletes fill in the ratings. If sharing is enabled, the coach can view them like other training results.",
+            descriptionDE = "Bewerte folgende Items auf einer Skala von 1 = Trifft nicht zu bis N = Trifft zu.",
+            descriptionEN = "Rate the following items on a scale from 1 = Does not apply to N = Applies.",
             category = "Reflektion", categories = listOf("Reflektion"),
             isTimeBased = false, material = "Ohne Hilfsmittel",
             searchTerms = listOf("Rating", "Bewertung", "Feedback", "Skala", "Scale", "Coach", "Ergebnis"),
@@ -227,18 +227,277 @@ object StandardDatabaseSeeder {
             descriptionEN = "Several images are shown briefly – tap as quickly as possible if you spot a duplicate. If no pair is visible, don't tap. Measures recognition speed and accuracy.",
             category = "Koordination", categories = listOf("Koordination"), isTimeBased = true,
             material = "Ohne Hilfsmittel", searchTerms = listOf("Reaktion", "Paare", "Erkennung", "Koordination", "Pairs", "Memory", "Reaction"), isCustom = false,
-            exerciseType = "pair_find", param2 = 4, param3 = 600)
+            exerciseType = "pair_find", param2 = 4, param3 = 600),
+
+        // ── Neue Übungen aus Übungsdatenbank2.csv ────────────────────────────
+
+        ExerciseTemplate(id = "std_42",
+            nameDE = "Wadenheben am Gerät", nameEN = "Machine Calf Raises",
+            descriptionDE = "Aufrechter Stand, Polster liegen auf den Schultern auf. Rumpfmuskulatur anspannen. Fersen maximal heben und dann wieder kontrolliert maximal absenken.",
+            descriptionEN = "Stand upright with the pads resting on your shoulders. Engage your core. Raise your heels as high as possible, then lower them back down in a controlled manner.",
+            category = "Unterschenkel", categories = listOf("Unterschenkel"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Schollenmuskel", "Achillessehne", "Soleus", "Achilles Tendon", "Gastrocnemius", "Zwillingswadenmuskel", "Fußgelenk", "Ankle", "Wade"), isCustom = false),
+
+        ExerciseTemplate(id = "std_43",
+            nameDE = "Wadenheben an der Beinpresse", nameEN = "Calf Raises on Leg Press",
+            descriptionDE = "Schulterbreite Fußposition einnehmen, Rumpfmuskulatur anspannen und Rücken in die Sitzlehne drücken. Die Fersen maximal heben und dann wieder kontrolliert maximal absenken.",
+            descriptionEN = "Place your feet shoulder-width apart, engage your core and press your back into the backrest. Raise your heels as high as possible, then lower them back down in a controlled manner.",
+            category = "Unterschenkel", categories = listOf("Unterschenkel"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Schollenmuskel", "Achillessehne", "Soleus", "Achilles Tendon", "Gastrocnemius", "Zwillingswadenmuskel", "Fußgelenk", "Ankle", "Beinpresse", "Leg Press"), isCustom = false),
+
+        ExerciseTemplate(id = "std_44",
+            nameDE = "Brustdrücken am Gerät", nameEN = "Machine Chest Press",
+            descriptionDE = "Auf die Bank setzen und anlehnen, die Füße stehen auf dem Boden. Die Handgriffe auf Brustkorbhöhe einstellen. Die Bauchmuskulatur anspannen und die Griffe von sich wegdrücken. Dann wieder die Griffe kontrolliert bis auf Brusthöhe absenken. Dabei die obere Rückenmuskulatur aktivieren.",
+            descriptionEN = "Sit on the bench and lean back with feet flat on the floor. Set the handles to chest height. Engage your core and push the handles away from you. Lower the handles back to chest height in a controlled manner, activating your upper back muscles.",
+            category = "Brust", categories = listOf("Brust", "Oberarme"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Bench Press", "Bankdrücken", "Trizeps", "Großer Brustmuskel", "Pectoralis Major Muscle", "Triceps", "Schulter", "Chest Press"), isCustom = false),
+
+        ExerciseTemplate(id = "std_45",
+            nameDE = "Fußheben am Seilzug", nameEN = "Cable Tibialis Raises",
+            descriptionDE = "Den Fuß auf einer Erhöhung ablegen und die Schlaufe um den Fuß legen. Bei bereits vorliegender Kabelspannung in Streckung des Fußgelenks starten. Fuß kontrolliert anziehen und strecken.",
+            descriptionEN = "Rest your foot on an elevated surface and place the loop around your foot. Begin with the cable under tension in a plantarflexed position. Pull your foot up into dorsiflexion in a controlled manner, then return to the start.",
+            category = "Unterschenkel", categories = listOf("Unterschenkel"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Fußgelenke", "Ankle", "Tibialis Anterior", "Vorderer Schienbeinmuskel", "Schienbeine", "Shins", "Kabelzug"), isCustom = false),
+
+        ExerciseTemplate(id = "std_46",
+            nameDE = "Hüftabduktion am Gerät", nameEN = "Hip Abduction Machine",
+            descriptionDE = "Die Beine sind geschlossen, die Polster liegen außen auf den Knien und Oberschenkeln auf. Die Knie kontrolliert nach außen drücken und dann wieder die Beine kontrolliert schließen.",
+            descriptionEN = "Start with legs together, pads resting on the outside of your knees and thighs. Push your knees outward in a controlled manner, then bring your legs back together in a controlled manner.",
+            category = "Becken", categories = listOf("Becken"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Gesäßmuskulatur", "Gluteus Maximus", "Gluteus Medius", "Sartorius", "Außenrotation", "Rotation", "Abduktion"), isCustom = false),
+
+        ExerciseTemplate(id = "std_47",
+            nameDE = "Klassisches Kreuzheben", nameEN = "Barbell Deadlift",
+            descriptionDE = "Einen schulterbreiten Stand einnehmen, Fußspitzen zeigen leicht nach außen. Die Langhantel liegt nah an den Schienbeinen. Knie beugen, dabei die Hüfte nach hinten schieben. Rumpfmuskulatur und obere Rückenmuskulatur anspannen, Hantel greifen und kontrolliert aufrichten. Das Gewicht wieder kontrolliert in die Ausgangsposition absenken. Die muskuläre Anspannung im Rumpf und oberen Rücken die ganze Zeit über halten.",
+            descriptionEN = "Stand shoulder-width apart with toes slightly turned out. Keep the barbell close to your shins. Bend your knees while pushing your hips back. Engage your core and upper back, grip the bar and lift in a controlled manner. Lower the weight back to the starting position in a controlled manner, maintaining core and upper-back tension throughout.",
+            category = "Oberschenkel", categories = listOf("Oberschenkel", "Becken"), isTimeBased = false,
+            material = "Hanteln", searchTerms = listOf("Langhantel", "Gesäßmuskulatur", "Quadrizeps", "Gluteus Maximus", "Quadriceps", "Hüfte", "Hips", "Knie", "Knee", "Deadlift", "Kreuzheben"), isCustom = false),
+
+        ExerciseTemplate(id = "std_48",
+            nameDE = "Rumänisches Kreuzheben", nameEN = "Romanian Deadlift",
+            descriptionDE = "Einen schulterbreiten Stand einnehmen, Fußspitzen zeigen leicht nach außen. Die Langhantel liegt nah an den Schienbeinen. Hüfte beugen, die Knie dabei nur leicht beugen. Die Rumpfmuskulatur und obere Rückenmuskulatur anspannen, Hantel greifen und kontrolliert aufrichten. Das Gewicht wieder kontrolliert in die Ausgangsposition absenken. Die muskuläre Anspannung im Rumpf und oberen Rücken die ganze Zeit über halten.",
+            descriptionEN = "Stand shoulder-width apart with toes slightly turned out. Keep the barbell close to your shins. Hinge at your hips while keeping your knees only slightly bent. Engage your core and upper back, grip the bar and lift in a controlled manner. Lower the weight back to the starting position in a controlled manner, maintaining core and upper-back tension throughout.",
+            category = "Oberschenkel", categories = listOf("Oberschenkel", "Becken"), isTimeBased = false,
+            material = "Hanteln", searchTerms = listOf("Langhantel", "Gesäßmuskulatur", "Gluteus Maximus", "Hüfte", "Hips", "Ischiocrurale Muskulatur", "Hamstrings", "Romanian Deadlift", "RDL"), isCustom = false),
+
+        ExerciseTemplate(id = "std_49",
+            nameDE = "Hüftextension am Kabelzug", nameEN = "Cable Hip Extension",
+            descriptionDE = "Mit Blick zum Kabelzug mit einem Bein auf eine erhöhte Unterlage stellen und am Kabelzuggestell festhalten. Den anderen Fuß in eine Fußschlaufe legen, Hüfte und Knie in der Startposition rund 90° gebeugt. Den Bauch anspannen und nach unten und hinten treten, sodass Knie und Hüfte gestreckt werden — so weit, wie die Bauchspannung eine Hohlkreuzhaltung vermeidet.",
+            descriptionEN = "Face the cable machine, stand on one leg on an elevated surface and hold the rack for balance. Place your other foot in the ankle strap with hip and knee bent approximately 90°. Engage your core and kick down and back to extend your knee and hip as far as your core tension allows without excessive lumbar extension.",
+            category = "Becken", categories = listOf("Becken"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Kick Backs", "Gesäßmuskulatur", "Gluteus Maximus", "Ischiocrurale Muskulatur", "Hamstrings", "Kabelzug", "Einbeinig"), isCustom = false),
+
+        ExerciseTemplate(id = "std_50",
+            nameDE = "Hüftbeugen am Kabelzug", nameEN = "Cable Hip Flexion",
+            descriptionDE = "Um ein Fußgelenk eine Schlaufe legen und mit dem Blick weg vom Kabelzug auf das andere Bein stellen, sodass der Kabelzug auf Spannung ist, wenn das Bein mit der Schlaufe leicht nach hinten gestreckt ist. Rumpfmuskulatur anspannen und das Bein anziehen, bis der Oberschenkel parallel zum Boden ist, und dann kontrolliert wieder in die Ausgangsposition absenken.",
+            descriptionEN = "Place an ankle loop around one foot and stand with your back to the cable machine so the cable is under tension with that foot slightly behind you. Engage your core and lift your knee until your thigh is parallel to the floor, then lower it back in a controlled manner.",
+            category = "Becken", categories = listOf("Becken"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Balance", "Proprioception", "Rectus Femoris", "Gerader Schenkelmuskel", "Tensor Fasciae Latae", "Hüftbeuger", "Hip Flexor", "Kabelzug"), isCustom = false),
+
+        ExerciseTemplate(id = "std_51",
+            nameDE = "Joggen", nameEN = "Running",
+            descriptionDE = "Für eine vorgegebene Zeit oder Distanz joggen.",
+            descriptionEN = "Jog for a prescribed time or distance.",
+            category = "Cardiovaskuläres Training", categories = listOf("Cardiovaskuläres Training"), isTimeBased = true, isDistanceBased = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Conditioning", "Ausdauertraining", "Rennen", "Laufen", "Cardio"), isCustom = false),
+
+        ExerciseTemplate(id = "std_52",
+            nameDE = "Joggen – Zone 2", nameEN = "Running – Zone 2",
+            descriptionDE = "Für eine vorgegebene Zeit oder Distanz joggen bei einer Herzfrequenz innerhalb der Zone 2.",
+            descriptionEN = "Jog for a prescribed time or distance at a heart-rate intensity within Zone 2.",
+            category = "Cardiovaskuläres Training", categories = listOf("Cardiovaskuläres Training"), isTimeBased = true, isDistanceBased = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Conditioning", "Low Intensity", "Niedrige Intensität", "Ausdauertraining", "Cardio", "Zone 2"), isCustom = false),
+
+        ExerciseTemplate(id = "std_53",
+            nameDE = "Joggen – Intervalltraining", nameEN = "Running – Interval Training",
+            descriptionDE = "Für eine vorgegebene Zeit oder Distanz joggen mit Wechsel zwischen hoher und niedriger Intensität. Coaches können Zeiten oder Distanzen für die einzelnen Intervalle angeben.",
+            descriptionEN = "Jog for a prescribed time or distance alternating between high and low intensity. Coaches can specify times or distances for each interval.",
+            category = "Cardiovaskuläres Training", categories = listOf("Cardiovaskuläres Training"), isTimeBased = true, isDistanceBased = true, isInterval = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Conditioning", "High Intensity", "Hohe Intensität", "Ausdauertraining", "Intervall", "HIIT", "Sprint"), isCustom = false),
+
+        ExerciseTemplate(id = "std_54",
+            nameDE = "Seitenheben am Kabelzug", nameEN = "Cable Lateral Raises",
+            descriptionDE = "Aufrechten Stand senkrecht zum Kabelzug einnehmen, Griff mit der kabelzugfernen Hand greifen und Rumpfmuskulatur anspannen. Den Arm gestreckt zur Seite anheben, bis er parallel zum Boden ist, und dann wieder kontrolliert absenken.",
+            descriptionEN = "Stand upright perpendicular to the cable machine, grip the handle with your far hand and engage your core. Raise your straight arm out to the side until it is parallel to the floor, then lower it back in a controlled manner.",
+            category = "Oberarme", categories = listOf("Oberarme"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Deltamuskel", "Deltoid", "Oberer Kapuzenmuskel", "Trapezius", "Obergrätenmuskel", "Supraspinatus", "Schulter", "Shoulder", "Seitenheben", "Lateral Raises"), isCustom = false),
+
+        ExerciseTemplate(id = "std_55",
+            nameDE = "Einbeiniges Kreuzheben", nameEN = "Single Leg Deadlift",
+            descriptionDE = "Auf ein Bein stellen mit leicht gebeugtem Knie, das nach vorne zeigt. Das andere Bein ist in der Luft nach hinten gestreckt. Rumpf und oberen Rücken anspannen und den Oberkörper absenken, bis er annähernd parallel zum Boden ist, dabei den Rücken gerade halten. Anschließend wieder in die Ausgangsposition aufrichten.",
+            descriptionEN = "Stand on one leg with a slightly bent knee pointing forward, the other leg extended behind you in the air. Engage your core and upper back, hinge forward until your torso is approximately parallel to the floor while keeping your back straight, then return to the starting position.",
+            category = "Oberschenkel", categories = listOf("Oberschenkel", "Becken"), isTimeBased = false,
+            material = "Hanteln", searchTerms = listOf("Balance", "Proprioception", "Gesäßmuskulatur", "Gluteus Maximus", "Hüfte", "Hips", "Ischiocrurale Muskulatur", "Hamstrings", "Einbeinig", "Single Leg"), isCustom = false),
+
+        ExerciseTemplate(id = "std_56",
+            nameDE = "Fußrotation nach innen", nameEN = "Foot Internal Rotation",
+            descriptionDE = "Ein elastisches Band auf Fußhöhe befestigen und um den Mittelfuß legen. In außenrotierter Position starten, sodass das Band bereits gespannt ist. Den Fuß kontrolliert nach innen rotieren und dann wieder nach außen zurückführen, während das Knie seine Position hält.",
+            descriptionEN = "Attach a resistance band at foot height and loop it around your midfoot. Begin in an externally rotated position with the band under tension. Rotate your foot inward in a controlled manner, then return to the externally rotated position, keeping your knee stable.",
+            category = "Unterschenkel", categories = listOf("Unterschenkel"), isTimeBased = false,
+            material = "weitere Hilfsmittel", searchTerms = listOf("Tibialis anterior", "Tibialis posterior", "Fußgelenk", "Ankle", "Innenrotation", "Internal Rotation", "Band"), isCustom = false),
+
+        ExerciseTemplate(id = "std_57",
+            nameDE = "Seitlich Gehen mit Miniband", nameEN = "Lateral Walk with Miniband",
+            descriptionDE = "Miniband oberhalb der Knie platzieren und mit schulterbreitem Stand einnehmen, sodass das Band gespannt ist und die Knie nicht nach innen fallen. Mit leicht gebeugten Knien und Hüfte seitwärts über eine vorgegebene Distanz gehen, während das Band die ganze Zeit gespannt bleibt.",
+            descriptionEN = "Place a mini band just above your knees and stand shoulder-width apart so the band is under tension, keeping your knees from caving inward. Walk sideways with slightly bent knees and hips for a set distance, keeping the band under tension throughout.",
+            category = "Becken", categories = listOf("Becken", "Oberschenkel"), isTimeBased = false, isDistanceBased = true,
+            material = "weitere Hilfsmittel", searchTerms = listOf("Hüfte", "Hip", "Gesäßmuskulatur", "Gluteus Maximus", "Gluteus Medius", "Sartorius", "Außenrotation", "Rotation", "Miniband", "Lateral Walk"), isCustom = false),
+
+        ExerciseTemplate(id = "std_58",
+            nameDE = "Gehen mit Miniband", nameEN = "Forward Walk with Miniband",
+            descriptionDE = "Miniband oberhalb der Knie platzieren und mit schulterbreitem Stand einnehmen, sodass das Band gespannt ist und die Knie nicht nach innen fallen. Mit gebeugten Knien und Hüfte vorwärts über eine vorgegebene Distanz gehen, während das Band die ganze Zeit gespannt bleibt.",
+            descriptionEN = "Place a mini band just above your knees and stand shoulder-width apart so the band is under tension, keeping your knees from caving inward. Walk forward with bent knees and hips for a set distance, keeping the band under tension throughout.",
+            category = "Becken", categories = listOf("Becken", "Oberschenkel"), isTimeBased = false, isDistanceBased = true,
+            material = "weitere Hilfsmittel", searchTerms = listOf("Hüfte", "Hip", "Gesäßmuskulatur", "Gluteus Maximus", "Gluteus Medius", "Sartorius", "Außenrotation", "Miniband", "Walk"), isCustom = false),
+
+        ExerciseTemplate(id = "std_59",
+            nameDE = "Einarmiges Überkopf-Trizepsstrecken am Kabelzug", nameEN = "Unilateral Overhead Cable Triceps Extension",
+            descriptionDE = "Mit Blick vom Kabelzug weg und dem Griff in einer Hand in einem stabilen, aufrechten Stand positionieren. Den Arm nach oben halten, Ellenbogen gebeugt. Rumpf anspannen, Ellenbogen strecken und kontrolliert wieder in die Ausgangsposition absenken.",
+            descriptionEN = "Stand facing away from the cable machine in a stable upright position with the handle in one hand. Hold your arm up with the elbow bent. Engage your core, extend your elbow to pull the cable upward, then lower it back to the starting position in a controlled manner.",
+            category = "Oberarme", categories = listOf("Oberarme"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Ellenbogen", "Elbow", "Trizeps", "Triceps", "Overhead", "Überkopf", "Kabelzug"), isCustom = false),
+
+        ExerciseTemplate(id = "std_60",
+            nameDE = "Kurzhantel Überkopf-Trizepsstrecken", nameEN = "Overhead Dumbbell Triceps Extension",
+            descriptionDE = "In einen stabilen, schulterbreiten Stand gehen und die Rumpfmuskulatur anspannen. Gewicht hinter dem Kopf halten und dann kontrolliert strecken und wieder absenken.",
+            descriptionEN = "Stand in a stable shoulder-width stance and engage your core. Hold a weight behind your head, then extend your arms upward in a controlled manner and lower back down.",
+            category = "Oberarme", categories = listOf("Oberarme"), isTimeBased = false,
+            material = "Hanteln", searchTerms = listOf("Ellenbogen", "Elbow", "Trizeps", "Triceps", "Overhead", "Überkopf", "Kurzhantel", "Dumbbell"), isCustom = false),
+
+        ExerciseTemplate(id = "std_61",
+            nameDE = "Kurzhantel Bizeps-Curls", nameEN = "Dumbbell Biceps Curls",
+            descriptionDE = "Mit Kurzhanteln in den Händen in einen stabilen, schulterbreiten Stand gehen und die Rumpfmuskulatur anspannen. Die Arme sind Richtung Boden gestreckt. Kontrolliert die Ellenbogen beugen und die Hanteln Richtung Schultern führen, dann wieder kontrolliert absenken.",
+            descriptionEN = "Hold dumbbells in each hand and stand in a stable shoulder-width stance, engaging your core. Keep your arms extended downward. Curl the weights toward your shoulders by bending your elbows in a controlled manner, then lower them back down in a controlled manner.",
+            category = "Oberarme", categories = listOf("Oberarme"), isTimeBased = false,
+            material = "Hanteln", searchTerms = listOf("Ellenbogen", "Elbow", "Bizeps", "Biceps", "Kurzhantel", "Dumbbell", "Curls"), isCustom = false),
+
+        ExerciseTemplate(id = "std_62",
+            nameDE = "Aufrechte Crunches am Kabelzug", nameEN = "Upright Cable Crunches",
+            descriptionDE = "Mit Blick Richtung Seilzug, vollständig gebeugten Knien und aufrechtem Oberkörper hinknien. Griffe in die Hände nehmen und über das gezielte Anspannen der Bauchmuskulatur den Oberkörper nach unten beugen und kontrolliert wieder strecken. Armhaltung und Hüftposition dabei fixieren.",
+            descriptionEN = "Kneel facing the cable machine with fully bent knees and an upright torso. Take the handles in your hands, then deliberately engage your abdominals to bend your torso downward and extend back upward in a controlled manner, keeping your arms and hip position fixed.",
+            category = "Bauch", categories = listOf("Bauch"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Gerade Bauchmuskulatur", "Quere Bauchmuskulatur", "Rumpf", "Core", "Rectus Abdominal", "Transverse Abdominal", "Obliques", "Schräger Bauchmuskel", "Cable Crunches"), isCustom = false),
+
+        ExerciseTemplate(id = "std_63",
+            nameDE = "Crunches am Kabelzug", nameEN = "Cable Crunches",
+            descriptionDE = "Mit Blick Richtung Seilzug, rund 90° gebeugten Knien und aufrechtem Oberkörper hinknien. Griffe in die Hände nehmen und über das gezielte Anspannen der Bauchmuskulatur den Oberkörper nach unten beugen und kontrolliert wieder strecken. Armhaltung fixieren und die Hüfte über Anspannen der Beckenmuskulatur gestreckt halten.",
+            descriptionEN = "Kneel facing the cable machine with knees bent at approximately 90° and an upright torso. Take the handles in your hands, then deliberately engage your abdominals to bend your torso downward and extend back upward in a controlled manner. Keep your arms fixed and your hips extended by engaging your pelvic muscles.",
+            category = "Bauch", categories = listOf("Bauch"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Gerade Bauchmuskulatur", "Quere Bauchmuskulatur", "Rumpf", "Core", "Rectus Abdominal", "Transverse Abdominal", "Obliques", "Schräger Bauchmuskel", "Cable Crunches"), isCustom = false),
+
+        ExerciseTemplate(id = "std_64",
+            nameDE = "Unterarm-Curls", nameEN = "Forearm Curls",
+            descriptionDE = "Den Unterarm mit Handfläche nach oben auf einer Unterlage ablegen, wobei die Hand mit Hantel in der Luft hängt. Die Hantel abwechselnd Richtung Boden absenken und Richtung Decke heben.",
+            descriptionEN = "Rest your forearm on a surface with your palm facing up, allowing your hand and dumbbell to hang freely. Alternately lower the dumbbell toward the floor and curl it upward toward the ceiling.",
+            category = "Unterarme", categories = listOf("Unterarme"), isTimeBased = false,
+            material = "Hanteln", searchTerms = listOf("Handgelenk", "Wrist", "Ulnarer Handgelenksbeuger", "Radialer Handgelenksbeuger", "Flexor Carpi Ulnaris", "Flexor Carpi Radialis", "Forearm"), isCustom = false),
+
+        ExerciseTemplate(id = "std_65",
+            nameDE = "Umgedrehte Unterarm-Curls", nameEN = "Reverse Forearm Curls",
+            descriptionDE = "Den Unterarm mit Handfläche nach unten auf einer Unterlage ablegen, wobei die Hand mit Hantel in der Luft hängt. Die Hantel abwechselnd Richtung Boden absenken und Richtung Decke heben.",
+            descriptionEN = "Rest your forearm on a surface with your palm facing down, allowing your hand and dumbbell to hang freely. Alternately lower the dumbbell toward the floor and curl it upward toward the ceiling.",
+            category = "Unterarme", categories = listOf("Unterarme"), isTimeBased = false,
+            material = "Hanteln", searchTerms = listOf("Handgelenk", "Wrist", "Ulnarer Handgelenksstrecker", "Radialer Handgelenksstrecker", "Extensor Carpi Ulnaris", "Extensor Carpi Radialis", "Reverse Forearm"), isCustom = false),
+
+        ExerciseTemplate(id = "std_66",
+            nameDE = "Oberkörperrotation am Seilzug", nameEN = "Cable Upper Body Rotation",
+            descriptionDE = "Das Kabel auf etwa Brusthöhe einstellen, den Griff in beide Hände nehmen und sich schulterbreit senkrecht zum Kabelzug hinstellen. Die Knie leicht beugen. Die Arme mit leicht gebeugten Ellenbogen nach vorne ausrichten und den Oberkörper kontrolliert zum Kabelzug hin und wieder wegrotieren. Der Blick folgt dabei stets der Richtung der Oberkörperausrichtung.",
+            descriptionEN = "Set the cable to approximately chest height, take the handle in both hands and stand shoulder-width apart perpendicular to the machine. Bend your knees slightly. Extend your arms forward with slightly bent elbows, then rotate your torso toward and away from the cable machine in a controlled manner, always keeping your gaze in the direction your torso faces.",
+            category = "Bauch", categories = listOf("Bauch"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Core", "Rumpf", "Schräger Bauchmuskel", "Quere Bauchmuskulatur", "Transverse Abdominal", "Obliques", "Rotation", "Kabelzug"), isCustom = false),
+
+        ExerciseTemplate(id = "std_67",
+            nameDE = "Einarmiges Brustdrücken mit Oberkörperrotation", nameEN = "Unilateral Chest Press with Upper Body Rotation",
+            descriptionDE = "Das Kabel auf etwa Brusthöhe einstellen, den Griff in eine Hand nehmen und mit Blick weg vom Kabelzug positionieren. Schulterbreit mit dem grifffernen Bein weiter vorne als dem anderen hinstellen. Den Griff auf Brusthöhe nah am Körper halten, Rumpf anspannen und zur Kabelseite nach hinten rotieren. Dann den Arm nach vorne strecken und dabei den Oberkörper mitrotieren. Kontrolliert wieder in die Ausgangsposition zurückrotieren.",
+            descriptionEN = "Set the cable to approximately chest height, take the handle in one hand and stand facing away from the cable machine in a staggered stance with the foot farthest from the cable forward. Hold the handle at chest height close to your body, engage your core and rotate your torso back toward the cable side. Extend your arm forward while rotating your torso, then rotate back to the starting position in a controlled manner.",
+            category = "Brust", categories = listOf("Brust", "Oberarme", "Bauch"), isTimeBased = false,
+            material = "Gerät", searchTerms = listOf("Core", "Rumpf", "Schräger Bauchmuskel", "Quere Bauchmuskulatur", "Transverse Abdominal", "Obliques", "Trizeps", "Großer Brustmuskel", "Pectoralis Major Muscle", "Triceps", "Schulter", "Rotation"), isCustom = false),
+
+        ExerciseTemplate(id = "std_68",
+            nameDE = "Sprinten", nameEN = "Sprinting",
+            descriptionDE = "Eine vorgegebene Distanz so schnell wie möglich sprinten.",
+            descriptionEN = "Sprint a prescribed distance as fast as possible.",
+            category = "Plyometrisches Training", categories = listOf("Plyometrisches Training"), isTimeBased = false, isDistanceBased = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Running", "Rennen", "Quadrizeps", "Gesäßmuskulatur", "Gluteus Maximus", "Quadriceps", "Hamstrings", "Ischiocrurale Muskulatur", "Schollenmuskel", "Achillessehne", "Sprint"), isCustom = false),
+
+        ExerciseTemplate(id = "std_69",
+            nameDE = "Laufband", nameEN = "Treadmill",
+            descriptionDE = "Für eine vorgegebene Zeit auf dem Laufband joggen.",
+            descriptionEN = "Jog on the treadmill for a prescribed time.",
+            category = "Cardiovaskuläres Training", categories = listOf("Cardiovaskuläres Training"), isTimeBased = true,
+            material = "Gerät", searchTerms = listOf("Running", "Joggen", "Rennen", "Conditioning", "Ausdauertraining", "Treadmill"), isCustom = false),
+
+        ExerciseTemplate(id = "std_70",
+            nameDE = "Sprünge aus Ausfallschrittstellung", nameEN = "Lunge Jumps",
+            descriptionDE = "In einer Ausfallschrittstellung starten. Füße zeigen dabei nach vorne, der Oberkörper ist aufrecht. Das Knie des hinteren Beins befindet sich unter der Hüfte, das Knie des vorderen Beins über dem vorderen Fuß. Dann so hoch wie möglich gerade nach oben springen und in der umgekehrten Schrittstellung landen.",
+            descriptionEN = "Start in a lunge position with feet pointing forward and an upright torso. The back knee is below the hip and the front knee is above the front foot. Explode as high as possible straight upward and land with the feet switched.",
+            category = "Plyometrisches Training", categories = listOf("Plyometrisches Training"), isTimeBased = false,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Gesäßmuskulatur", "Quadrizeps", "Gluteus Maximus", "Quadriceps", "Achilles Tendon", "Achillessehne", "Ausfallschritt", "Lunge", "Jump", "Sprung"), isCustom = false),
+
+        ExerciseTemplate(id = "std_71",
+            nameDE = "Hock-Streck-Sprünge", nameEN = "Squat Jumps",
+            descriptionDE = "In einer tiefen Hocke starten, Knie zeigen dabei leicht nach außen und der Oberkörper ist aufrecht. Dann so hoch wie möglich nach oben springen und beim Landen wieder in die Hocke gehen.",
+            descriptionEN = "Start in a deep squat with knees pointing slightly outward and an upright torso. Jump as high as possible and land back into the squat position.",
+            category = "Plyometrisches Training", categories = listOf("Plyometrisches Training"), isTimeBased = false,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Gesäßmuskulatur", "Quadrizeps", "Gluteus Maximus", "Quadriceps", "Achilles Tendon", "Achillessehne", "Squat Jump", "Hocke", "Sprung"), isCustom = false),
+
+        ExerciseTemplate(id = "std_72",
+            nameDE = "Dehnung der vorderen Oberschenkelmuskulatur", nameEN = "Quadriceps Stretch",
+            descriptionDE = "Das Bein oberhalb des Fußgelenks greifen und Richtung Gesäß ziehen. Den Core aktivieren, das Gesäß nach vorne schieben und darauf achten, dass das Knie Richtung Boden zeigt.",
+            descriptionEN = "Grip your leg just above the ankle and pull it toward your glutes. Engage your core, push your hips forward, and ensure your knee points toward the floor.",
+            category = "Mobilisation", categories = listOf("Mobilisation"), isTimeBased = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Quadrizeps", "Quadriceps", "Oberschenkel", "Dehnung", "Stretch", "Hüftbeuger", "Hip Flexor"), isCustom = false),
+
+        ExerciseTemplate(id = "std_73",
+            nameDE = "Dehnung der Gesäßmuskulatur", nameEN = "Glute Stretch",
+            descriptionDE = "Das Bein angewinkelt Richtung Körper ziehen. Dabei eine aufrechte Körperhaltung bewahren.",
+            descriptionEN = "Pull your bent leg toward your body, maintaining an upright posture.",
+            category = "Mobilisation", categories = listOf("Mobilisation"), isTimeBased = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Gluteus Maximus", "Gesäß", "Glute", "Dehnung", "Stretch", "Hüfte"), isCustom = false),
+
+        ExerciseTemplate(id = "std_74",
+            nameDE = "Ruderergometer", nameEN = "Rowing Machine",
+            descriptionDE = "Für eine vorgegebene Zeit auf dem Ruderergometer rudern.",
+            descriptionEN = "Row on the ergometer for a prescribed time.",
+            category = "Cardiovaskuläres Training", categories = listOf("Cardiovaskuläres Training"), isTimeBased = true,
+            material = "Gerät", searchTerms = listOf("Conditioning", "Ausdauertraining", "Rudern", "Rowing", "Ergometer", "Cardio"), isCustom = false),
+
+        ExerciseTemplate(id = "std_75",
+            nameDE = "Wadendehnung", nameEN = "Calf Stretch",
+            descriptionDE = "In einer Schrittstellung mit angewinkeltem vorderen Bein und durchgestrecktem hinteren Bein das hintere Bein so positionieren, dass eine Dehnung in der Wadenmuskulatur zu spüren ist. Die Hüfte nach vorne schieben und die Ferse am Boden behalten.",
+            descriptionEN = "In a staggered stance with the front knee bent and the back leg straight, position your back leg until you feel a stretch in your calf. Push your hips forward and keep your back heel on the ground.",
+            category = "Mobilisation", categories = listOf("Mobilisation"), isTimeBased = true,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Achilles Tendon", "Achillessehne", "Schollenmuskel", "Soleus", "Gastrocnemius", "Zwillingswadenmuskel", "Dehnung", "Stretch", "Wade", "Calf"), isCustom = false),
+
+        ExerciseTemplate(id = "std_76",
+            nameDE = "Reverse-Crunches", nameEN = "Reverse Crunches",
+            descriptionDE = "In Rückenlage die Beine senkrecht in die Luft strecken. Die Arme seitlich vom Körper, den Kopf auf dem Boden ablegen. Über das Aktivieren der Bauchmuskulatur die Beine nach oben heben und kontrolliert wieder in die Ausgangsposition führen.",
+            descriptionEN = "Lie on your back and extend your legs straight up in the air. Place your arms beside your body and your head on the floor. Engage your abdominals to lift your legs further upward, then lower them back to the starting position in a controlled manner.",
+            category = "Bauch", categories = listOf("Bauch"), isTimeBased = false,
+            material = "Ohne Hilfsmittel", searchTerms = listOf("Gerade Bauchmuskulatur", "Quere Bauchmuskulatur", "Rumpf", "Core", "Rectus Abdominal", "Transverse Abdominal", "Obliques", "Schräger Bauchmuskel", "Reverse Crunches"), isCustom = false),
+
+        ExerciseTemplate(id = "std_77",
+            nameDE = "Fahrradergometer", nameEN = "Exercise Bike",
+            descriptionDE = "Für eine vorgegebene Zeit Rad fahren.",
+            descriptionEN = "Cycle on the exercise bike for a set amount of time.",
+            category = "Cardiovaskuläres Training", categories = listOf("Cardiovaskuläres Training"), isTimeBased = true,
+            material = "Gerät", searchTerms = listOf("Ausdauertraining", "Conditioning", "Fahrrad", "Ergometer", "Cardio", "Bike", "Cycling"), isCustom = false)
     )
 
     // IDs that should always be overwritten (description/content updates)
-    private val forceUpdate = setOf("std_32", "std_41")
+    private val forceUpdate = setOf("std_01", "std_10", "std_32", "std_33", "std_34", "std_37", "std_41", "std_53", "std_54", "std_77")
 
     suspend fun seedIfNeeded(db: FirebaseFirestore) {
         val col = db.collection("standardExercises")
-        val existing = col.get().await().documents.map { it.id }.toSet()
+        val existingDocs = col.get().await().documents.associate { it.id to it.data }
         exercises.forEach { ex ->
-            if (ex.id !in existing || ex.id in forceUpdate) {
-                col.document(ex.id).set(ex).await()
+            if (ex.id !in existingDocs || ex.id in forceUpdate) {
+                // Preserve photoUrls already stored in Firestore when local list is empty
+                val storedUrls = (existingDocs[ex.id]?.get("photoUrls") as? List<*>)
+                    ?.filterIsInstance<String>() ?: emptyList()
+                val toSave = if (ex.photoUrls.isEmpty() && storedUrls.isNotEmpty())
+                    ex.copy(photoUrls = storedUrls) else ex
+                col.document(ex.id).set(toSave).await()
             }
         }
     }

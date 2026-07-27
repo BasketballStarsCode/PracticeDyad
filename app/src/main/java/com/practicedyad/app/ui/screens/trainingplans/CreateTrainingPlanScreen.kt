@@ -319,7 +319,9 @@ fun WorkoutUnitEditor(
                     orderIndex = unit.exercises.size,
                     exerciseType = template.exerciseType,
                     gameParams = defaultGameParams,
-                    sets = if (template.exerciseType != "standard") 3 else 3
+                    sets = if (template.exerciseType != "standard") 3 else 3,
+                    ratingItems = template.ratingItems,
+                    ratingScale = template.ratingScale
                 )
                 onUpdate(unit.copy(exercises = unit.exercises + newEx))
                 showExercisePicker = false
@@ -464,7 +466,16 @@ fun PlannedExerciseEditor(
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
                     )
-                    if (exercise.exerciseType != "standard") {
+                    if (exercise.exerciseType == "ratings") {
+                        Text(
+                            "${exercise.ratingItems.size} Items · Skala 1–${exercise.ratingScale}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else if (exercise.exerciseType in listOf("reflection_journal", "reflection_weekly")) {
+                        Text("Reflexion", style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else if (exercise.exerciseType != "standard") {
                         val rs = exercise.gameParams["roundSeconds"] ?: 60
                         Text(
                             "${exercise.sets} Runden × ${rs}s",
@@ -502,7 +513,56 @@ fun PlannedExerciseEditor(
                         label = "Beschreibung", singleLine = false, maxLines = 3
                     )
 
-                    if (exercise.exerciseType != "standard") {
+                    if (exercise.exerciseType == "ratings") {
+                        // Rating items editor
+                        var newItemText by remember { mutableStateOf("") }
+                        Text("Bewertungs-Items", style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            NumberField("Skala (1–N)", exercise.ratingScale.coerceIn(2, 10), Modifier.weight(1f)) {
+                                onUpdate(exercise.copy(ratingScale = it.coerceIn(2, 10)))
+                            }
+                        }
+                        exercise.ratingItems.forEachIndexed { i, item ->
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("• $item", modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.bodyMedium)
+                                IconButton(onClick = {
+                                    onUpdate(exercise.copy(ratingItems = exercise.ratingItems.toMutableList().also { it.removeAt(i) }))
+                                }, modifier = Modifier.size(28.dp)) {
+                                    Icon(Icons.Default.Close, null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(
+                                value = newItemText,
+                                onValueChange = { newItemText = it },
+                                modifier = Modifier.weight(1f),
+                                label = { Text("Neues Item") },
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            IconButton(onClick = {
+                                if (newItemText.isNotBlank()) {
+                                    onUpdate(exercise.copy(ratingItems = exercise.ratingItems + newItemText.trim()))
+                                    newItemText = ""
+                                }
+                            }) {
+                                Icon(Icons.Default.Add, null, tint = TealPrimary)
+                            }
+                        }
+                    } else if (exercise.exerciseType in listOf("reflection_journal", "reflection_weekly")) {
+                        // Reflection: no sets/params needed, just description
+                        Text("Reflexionsübung – Athlet*innen schreiben einen Text, der in den Trainingsnotizen gespeichert wird.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else if (exercise.exerciseType != "standard") {
                         // Game exercise: show rounds + game-specific params
                         val params = exercise.gameParams.toMutableMap()
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -878,7 +938,7 @@ fun ExercisePickerDialog(
     val lang = LocalAppLanguage.current
     val s = LocalAppStrings.current
 
-    val categories = remember(exercises) { exercises.map { it.category }.filter { it.isNotEmpty() }.distinct().sorted() }
+    val categories = remember(exercises) { exercises.map { it.category }.filter { it.isNotEmpty() }.distinct().sortedBy { categoryOrder(it) } }
     val materials = remember(exercises) { exercises.map { it.material }.filter { it.isNotEmpty() }.distinct().sorted() }
 
     val filtered = remember(search, filterCategory, filterMaterial, exercises, lang) {

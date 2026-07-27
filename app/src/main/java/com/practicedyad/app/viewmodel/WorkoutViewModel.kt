@@ -193,6 +193,13 @@ class WorkoutViewModel @Inject constructor(
         }
     }
 
+    fun updateRatings(exerciseIndex: Int, ratings: Map<String, Int>) {
+        val session = _activeSession.value ?: return
+        val entries = session.exerciseEntries.toMutableList()
+        entries[exerciseIndex] = entries[exerciseIndex].copy(ratings = ratings)
+        _activeSession.value = session.copy(exerciseEntries = entries)
+    }
+
     fun getSharedSessions(coachId: String, athleteId: String): Flow<List<WorkoutSession>> =
         repo.getSharedSessions(coachId, athleteId)
 
