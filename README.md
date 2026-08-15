@@ -186,4 +186,3 @@ This project is **proprietary** — all rights reserved. Unauthorized copying or
 
 ---
 
-**Made with ❤️ for coaches and athletes who demand excellence.**
